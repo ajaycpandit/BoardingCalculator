@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Paws & Board — Boarding Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #FAF8F3; --cream-mid: #F2EEE5; --cream-dark: #E8E2D5;
+  --brown-light: #C4A882; --brown: #8B6B47; --brown-dark: #5C4230;
+  --forest: #3D5A3E; --forest-light: #6A8F6B; --forest-pale: #EEF3EE;
+  --ink: #1C1410; --ink-mid: #4A3728; --ink-light: #7A6558; --ink-faint: #B09E94;
+  --white: #FFFFFF; --danger: #C0392B; --danger-pale: #FDF0EE;
+  --gold: #B8860B; --gold-pale: #FDF8E7;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-xl: 20px;
+  --shadow-sm: 0 1px 4px rgba(28,20,16,0.08);
+  --shadow-md: 0 4px 16px rgba(28,20,16,0.10);
+  --shadow-lg: 0 8px 32px rgba(28,20,16,0.18);
+  --nav-h: 64px; /* bottom nav height on mobile */
+}
+html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; line-height: 1.6; }
+
+/* ════════════════════════════════════════
+   DESKTOP LAYOUT (sidebar)
+════════════════════════════════════════ */
+.app-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+.sidebar {
+  background: var(--brown-dark); position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.brand-paw { font-size: 26px; margin-bottom: 4px; display: block; }
+.brand-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--cream); line-height: 1.1; }
+.brand-tagline { font-size: 10px; color: var(--brown-light); margin-top: 3px; letter-spacing: 0.06em; text-transform: uppercase; }
+.sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: var(--radius-md); cursor: pointer; font-size: 14px; font-weight: 400;
+  color: var(--brown-light); transition: background 0.15s, color 0.15s;
+  border: none; background: none; text-align: left; width: 100%;
+  font-family: 'DM Sans', sans-serif; min-height: 44px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: var(--cream); }
+.nav-item.active { background: rgba(255,255,255,0.13); color: var(--cream); font-weight: 600; }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.8; }
+.nav-item.active svg { opacity: 1; }
+.sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: rgba(196,168,130,0.45); text-align: center; }
+
+/* bottom nav hidden on desktop */
+.bottom-nav { display: none; }
+
+.main { overflow-y: auto; overflow-x: hidden; }
+.page { display: none; padding: 36px 44px; max-width: 860px; animation: fadeIn 0.18s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* ════════════════════════════════════════
+   MOBILE LAYOUT (≤ 700px)
+════════════════════════════════════════ */
+@media (max-width: 700px) {
+  .app-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; min-height: 100dvh; }
+  .sidebar { display: none; } /* hide sidebar */
+
+  /* mobile top bar */
+  .mobile-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--brown-dark); padding: 14px 18px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+    position: sticky; top: 0; z-index: 100;
+  }
+  .mobile-topbar .brand-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--cream); }
+  .mobile-topbar .brand-paw { font-size: 20px; margin-bottom: 0; display: inline; margin-right: 6px; }
+
+  .main { overflow-y: auto; overflow-x: hidden; }
+  .page { padding: 20px 16px; padding-bottom: calc(20px + var(--nav-h) + env(safe-area-inset-bottom)); }
+
+  /* bottom nav */
+  .bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--brown-dark); border-top: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 200;
+  }
+  .bnav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 4px; gap: 4px; cursor: pointer; border: none; background: none;
+    color: var(--brown-light); font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500;
+    transition: color 0.15s; min-height: var(--nav-h); -webkit-tap-highlight-color: transparent;
+  }
+  .bnav-item svg { width: 22px; height: 22px; }
+  .bnav-item.active { color: var(--cream); }
+  .bnav-item.active svg { stroke: var(--cream); }
+}
+
+/* ════════════════════════════════════════
+   MOBILE TOPBAR (hidden on desktop)
+════════════════════════════════════════ */
+.mobile-topbar { display: none; }
+
+/* ════════════════════════════════════════
+   PAGE HEADER
+════════════════════════════════════════ */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink); line-height: 1.15; }
+.page-header p { font-size: 14px; color: var(--ink-light); margin-top: 3px; }
+@media (max-width: 700px) {
+  .page-header h1 { font-size: 22px; }
+  .page-header p { font-size: 13px; }
+}
+
+/* ════════════════════════════════════════
+   CARDS
+════════════════════════════════════════ */
+.card { background: var(--white); border: 1px solid var(--cream-dark); border-radius: var(--radius-xl); padding: 22px 24px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+@media (max-width: 700px) { .card { padding: 16px 16px; border-radius: var(--radius-lg); } }
+.card-title { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 16px; display: flex; align-items: center; gap: 7px; }
+.card-title svg { width: 14px; height: 14px; color: var(--brown); }
+
+/* ════════════════════════════════════════
+   FORMS
+════════════════════════════════════════ */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 12px; } }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--ink-mid); letter-spacing: 0.02em; }
+.field input, .field select, .field textarea {
+  height: 46px; padding: 0 14px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--radius-md);
+  background: var(--cream); color: var(--ink); font-size: 16px; /* 16px prevents iOS zoom */
+  font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%; outline: none; -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--brown); box-shadow: 0 0 0 3px rgba(139,107,71,0.12); background: var(--white);
+}
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B6B47' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+.field textarea { height: auto; padding: 10px 14px; resize: vertical; font-size: 15px; }
+.field-hint { font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 0 18px; height: 46px; border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all 0.15s; border: 1.5px solid transparent;
+  white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn-primary { background: var(--brown-dark); color: var(--cream); border-color: var(--brown-dark); }
+.btn-primary:active { opacity: 0.85; }
+.btn-outline { background: transparent; color: var(--ink-mid); border-color: var(--cream-dark); }
+.btn-outline:active { background: var(--cream); }
+.btn-forest { background: var(--forest); color: white; border-color: var(--forest); }
+.btn-forest:active { opacity: 0.85; }
+.btn-danger { background: transparent; color: var(--danger); border-color: #EAB0AC; }
+.btn-danger:active { background: var(--danger-pale); }
+.btn-sm { height: 36px; padding: 0 14px; font-size: 13px; }
+.btn-full { width: 100%; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+@media (max-width: 700px) {
+  .btn-row { gap: 8px; }
+  .btn-row .btn-primary { flex: 1; }
+}
+
+/* ════════════════════════════════════════
+   SERVICE TOGGLE
+════════════════════════════════════════ */
+.service-toggle {
+  display: flex; background: var(--cream); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-lg); padding: 4px; margin-bottom: 18px; gap: 4px; width: 100%;
+}
+.svc-btn {
+  flex: 1; padding: 10px 16px; border-radius: var(--radius-md); border: none;
+  background: transparent; color: var(--ink-light); font-size: 15px; font-weight: 500;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.svc-btn.active { background: var(--white); color: var(--brown-dark); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+/* ════════════════════════════════════════
+   DOG CHIPS
+════════════════════════════════════════ */
+.dog-chip-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 700px) { .dog-chip-grid { gap: 8px; } }
+.dog-chip {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  border-radius: var(--radius-lg); border: 1.5px solid var(--cream-dark);
+  background: var(--cream); cursor: pointer; transition: all 0.15s;
+  min-width: 150px; max-width: 100%; -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 700px) { .dog-chip { min-width: calc(50% - 4px); flex: 1 1 calc(50% - 4px); } }
+.dog-chip:active { border-color: var(--brown); background: #FBF6F0; }
+.dog-chip.selected { border-color: var(--brown); background: #FBF6F0; box-shadow: 0 0 0 3px rgba(139,107,71,0.1); }
+.dog-chip-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--cream-mid); border: 1.5px solid var(--cream-dark);
+  overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.dog-chip-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dog-chip-info { flex: 1; min-width: 0; }
+.dog-chip-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dog-chip-sub { font-size: 11px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dog-chip.selected .dog-chip-name { color: var(--brown-dark); }
+.chip-check {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--brown);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+}
+.dog-chip.selected .chip-check { opacity: 1; }
+.chip-check svg { width: 10px; height: 10px; color: white; }
+
+/* ════════════════════════════════════════
+   BREAKDOWN TABLE (desktop) / CARDS (mobile)
+════════════════════════════════════════ */
+.breakdown-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.breakdown { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px; }
+table.breakdown th {
+  text-align: left; padding: 8px 10px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-faint); border-bottom: 1.5px solid var(--cream-dark);
+}
+table.breakdown th:last-child { text-align: right; }
+table.breakdown td { padding: 12px 10px; border-bottom: 1px solid var(--cream); vertical-align: middle; color: var(--ink-mid); }
+table.breakdown td:last-child { text-align: right; font-weight: 600; color: var(--ink); }
+table.breakdown tr:last-child td { border-bottom: none; }
+.dog-row-name { font-weight: 600; color: var(--ink); }
+.dog-row-owner { font-size: 12px; color: var(--ink-faint); margin-top: 1px; }
+
+/* Mobile breakdown cards replace table */
+.mobile-breakdown { display: none; }
+@media (max-width: 700px) {
+  .breakdown-wrap { display: none; }
+  .mobile-breakdown { display: block; }
+}
+.mob-dog-row {
+  background: var(--cream); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 8px;
+  border: 1px solid var(--cream-dark);
+}
+.mob-dog-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.mob-dog-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.mob-dog-owner { font-size: 12px; color: var(--ink-faint); }
+.mob-dog-amount { font-size: 18px; font-weight: 700; color: var(--ink); }
+.mob-dog-details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mob-detail { font-size: 12px; color: var(--ink-light); }
+.mob-detail span { display: block; font-size: 13px; font-weight: 600; color: var(--ink-mid); }
+
+.badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+.badge-warn { background: var(--gold-pale); color: var(--gold); border: 1px solid #E8D5A0; }
+.badge-ok { background: var(--forest-pale); color: var(--forest); border: 1px solid #C0D5C1; }
+
+.grand-total-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding: 16px 20px; background: var(--brown-dark); border-radius: var(--radius-lg); color: var(--cream);
+}
+@media (max-width: 700px) { .grand-total-bar { padding: 14px 16px; } }
+.grand-total-label { font-size: 13px; opacity: 0.7; }
+.grand-total-value { font-family: 'DM Serif Display', serif; font-size: 30px; }
+.stay-meta { font-size: 11px; color: rgba(250,248,243,0.5); margin-top: 3px; }
+
+/* ════════════════════════════════════════
+   DOG LIST
+════════════════════════════════════════ */
+.dog-list { display: flex; flex-direction: column; gap: 10px; }
+.dog-item {
+  background: var(--white); border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-lg); padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-sm);
+}
+@media (max-width: 700px) {
+  .dog-item { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+  .dog-item-actions { width: 100%; justify-content: flex-end; }
+}
+.dog-avatar-lg {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--cream-mid); border: 2px solid var(--cream-dark);
+  overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.dog-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+.dog-item-info { flex: 1; min-width: 0; }
+.dog-item-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.dog-item-owner { font-size: 13px; color: var(--ink-light); margin-top: 1px; }
+.dog-item-meta { display: flex; gap: 12px; margin-top: 5px; flex-wrap: wrap; }
+.dog-item-meta span { font-size: 12px; color: var(--ink-faint); display: flex; align-items: center; gap: 3px; }
+.dog-item-meta svg { width: 12px; height: 12px; }
+.dog-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ════════════════════════════════════════
+   PHOTO UPLOAD
+════════════════════════════════════════ */
+.photo-upload-area {
+  border: 2px dashed var(--cream-dark); border-radius: var(--radius-lg); padding: 18px 14px;
+  text-align: center; cursor: pointer; transition: all 0.15s; background: var(--cream); width: 110px;
+}
+.photo-upload-area:active { border-color: var(--brown); background: var(--white); }
+.photo-upload-area img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin: 0 auto 6px; display: block; border: 2px solid var(--cream-dark); }
+.upload-placeholder { font-size: 30px; margin-bottom: 4px; }
+.photo-upload-area p { font-size: 11px; color: var(--ink-faint); }
+#photo-file-input { display: none; }
+@media (max-width: 700px) {
+  .dog-add-layout { flex-direction: column !important; }
+  .photo-upload-area { width: 100%; display: flex; align-items: center; gap: 16px; padding: 12px 16px; text-align: left; }
+  .photo-upload-area img { margin: 0; width: 56px; height: 56px; }
+  .photo-upload-area .upload-placeholder { font-size: 28px; margin-bottom: 0; }
+  .photo-upload-area p { font-size: 13px; }
+}
+
+/* ════════════════════════════════════════
+   HISTORY
+════════════════════════════════════════ */
+.history-list { display: flex; flex-direction: column; gap: 12px; }
+.history-item {
+  background: var(--white); border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm);
+}
+@media (max-width: 700px) { .history-item { padding: 14px 14px; } }
+.history-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.history-dogs { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; flex: 1; margin-right: 10px; }
+.history-dog-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--cream); border: 1px solid var(--cream-dark); border-radius: 99px; padding: 3px 9px 3px 5px;
+}
+.history-dog-avatar {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--cream-mid);
+  overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px;
+}
+.history-dog-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.history-dog-name { font-size: 12px; font-weight: 600; color: var(--ink-mid); }
+.history-amount { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); white-space: nowrap; }
+.history-meta { font-size: 12px; color: var(--ink-faint); display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.history-meta span { display: flex; align-items: center; gap: 4px; }
+.history-meta svg { width: 13px; height: 13px; flex-shrink: 0; }
+.history-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .history-actions .btn-sm { flex: 1; min-width: 0; font-size: 12px; padding: 0 8px; }
+}
+.service-pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px; }
+.service-boarding { background: #EEF6F0; color: var(--forest); border: 1px solid #C5DEC7; }
+.service-daycare { background: var(--gold-pale); color: var(--gold); border: 1px solid #E8D5A0; }
+
+/* ════════════════════════════════════════
+   SETTINGS
+════════════════════════════════════════ */
+.settings-section { margin-bottom: 24px; }
+.settings-section h3 { font-size: 14px; font-weight: 600; color: var(--ink-mid); margin-bottom: 12px; }
+.surcharge-preview {
+  background: var(--forest-pale); border: 1px solid #C5DEC7; border-radius: var(--radius-md);
+  padding: 12px 14px; font-size: 13px; color: var(--forest); margin-top: 12px; line-height: 1.6;
+}
+
+/* ════════════════════════════════════════
+   EMPTY STATE
+════════════════════════════════════════ */
+.empty-state { text-align: center; padding: 36px 16px; color: var(--ink-faint); }
+.empty-state .empty-icon { font-size: 38px; margin-bottom: 10px; display: block; }
+.empty-state p { font-size: 14px; }
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); right: 20px;
+  background: var(--brown-dark); color: var(--cream);
+  padding: 12px 18px; border-radius: var(--radius-lg); font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-lg); transform: translateY(20px); opacity: 0;
+  transition: all 0.22s; pointer-events: none; z-index: 9999;
+  display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px);
+}
+@media (max-width: 700px) {
+  #toast { bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom)); right: 12px; left: 12px; max-width: none; }
+}
+#toast.show { transform: none; opacity: 1; }
+
+/* ════════════════════════════════════════
+   INVOICE MODAL
+════════════════════════════════════════ */
+#invoice-modal-overlay {
+  position: fixed; inset: 0; background: rgba(28,20,16,0.6);
+  z-index: 1000; display: none; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+@media (min-width: 701px) {
+  #invoice-modal-overlay { align-items: center; padding: 20px; }
+}
+#invoice-modal-overlay.open { display: flex; }
+#invoice-modal {
+  background: var(--white);
+  width: 100%;
+  max-height: 92dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+}
+@media (min-width: 701px) {
+  #invoice-modal { max-width: 640px; border-radius: var(--radius-xl); }
+}
+#invoice-modal-header {
+  padding: 18px 22px; border-bottom: 1px solid var(--cream-dark);
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; background: var(--white); z-index: 1;
+}
+#invoice-modal-header h3 { font-family: 'DM Serif Display', serif; font-size: 18px; }
+#invoice-modal-header .header-btns { display: flex; gap: 8px; }
+#invoice-content { padding: 24px 24px 32px; }
+@media (max-width: 700px) { #invoice-content { padding: 18px 16px 32px; } }
+
+/* Invoice styles */
+.inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; gap: 16px; }
+@media (max-width: 500px) { .inv-header { flex-direction: column; gap: 12px; } }
+.inv-brand-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); }
+.inv-brand-paw { font-size: 13px; }
+.inv-number { text-align: right; }
+@media (max-width: 500px) { .inv-number { text-align: left; } }
+.inv-label { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+.inv-val { font-size: 16px; font-weight: 600; color: var(--ink); margin-top: 2px; }
+.inv-section-title { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; font-weight: 600; }
+.inv-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+@media (max-width: 500px) { .inv-info-grid { grid-template-columns: 1fr; gap: 10px; } }
+.inv-info-box .inv-value { font-size: 13px; color: var(--ink); line-height: 1.5; }
+.inv-dog-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.inv-dog-card { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--cream-dark); background: var(--cream); }
+.inv-dog-ava { width: 34px; height: 34px; border-radius: 50%; background: var(--cream-mid); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1.5px solid var(--cream-dark); }
+.inv-dog-ava img { width: 100%; height: 100%; object-fit: cover; }
+.inv-dog-card-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.inv-dog-card-owner { font-size: 11px; color: var(--ink-faint); }
+
+/* Invoice table → stacked cards on mobile */
+.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.inv-table th { text-align: left; padding: 7px 0; border-bottom: 1.5px solid var(--ink); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-mid); font-weight: 600; }
+.inv-table th:last-child { text-align: right; }
+.inv-table td { padding: 9px 0; border-bottom: 1px solid var(--cream-dark); color: var(--ink-mid); vertical-align: top; }
+.inv-table td:last-child { text-align: right; font-weight: 600; color: var(--ink); }
+
+.inv-mob-rows { display: none; }
+@media (max-width: 500px) {
+  .inv-table { display: none; }
+  .inv-mob-rows { display: block; }
+}
+.inv-mob-row {
+  background: var(--cream); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--cream-dark);
+}
+.inv-mob-row-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.inv-mob-row-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+.inv-mob-row-total { font-size: 15px; font-weight: 700; color: var(--ink); }
+.inv-mob-row-details { font-size: 12px; color: var(--ink-light); }
+
+.inv-total-section { background: var(--brown-dark); border-radius: var(--radius-lg); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.inv-total-label { color: var(--cream); opacity: 0.7; font-size: 13px; }
+.inv-total-value { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--cream); }
+.inv-footer { text-align: center; margin-top: 22px; font-size: 12px; color: var(--ink-faint); }
+
+/* ════════════════════════════════════════
+   SCROLLBAR
+════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--cream-dark); border-radius: 99px; }
+
+/* ════════════════════════════════════════
+   PRINT
+════════════════════════════════════════ */
+@media print {
+  body * { visibility: hidden; }
+  #printable-invoice, #printable-invoice * { visibility: visible; }
+  #printable-invoice { position: fixed; inset: 0; background: white; padding: 32px 40px; font-family: 'DM Sans', sans-serif; }
+  .inv-total-section { background: #5C4230 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Desktop Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-paw">🐾</span>
+      <div class="brand-name">Paws & Board</div>
+      <div class="brand-tagline">Boarding Calculator</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('calc')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
+        Calculate
+      </button>
+      <button class="nav-item" onclick="showPage('dogs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Dogs
+      </button>
+      <button class="nav-item" onclick="showPage('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        History
+      </button>
+      <button class="nav-item" onclick="showPage('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-footer">v2.1 · Your Boarding Business</div>
+  </aside>
+
+  <!-- ── Main Content ── -->
+  <div style="display:flex;flex-direction:column;min-height:100dvh;">
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar">
+      <div><span class="brand-paw">🐾</span><span class="brand-name">Paws & Board</span></div>
+    </div>
+
+    <main class="main" style="flex:1">
+
+      <!-- CALCULATE -->
+      <div id="page-calc" class="page active">
+        <div class="page-header">
+          <h1>New Booking</h1>
+          <p>Select dogs, service type, and dates.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Select Dogs
+          </div>
+          <div id="dog-chip-grid" class="dog-chip-grid"></div>
+          <div id="no-dogs-hint" style="font-size:13px;color:var(--ink-faint);display:none">No dogs yet — add them on the <strong>Dogs</strong> page first.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Service & Dates
+          </div>
+          <div class="service-toggle">
+            <button class="svc-btn active" id="svc-boarding" onclick="setService('boarding')">🏡 Boarding</button>
+            <button class="svc-btn" id="svc-daycare" onclick="setService('daycare')">☀️ Day Care</button>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Check-In Date</label><input type="date" id="ci-date" oninput="recalc()"></div>
+            <div class="field"><label>Check-In Time</label><input type="time" id="ci-time" value="10:00" oninput="recalc()"></div>
+            <div class="field"><label>Check-Out Date</label><input type="date" id="co-date" oninput="recalc()"></div>
+            <div class="field"><label>Check-Out Time</label><input type="time" id="co-time" value="10:00" oninput="recalc()"></div>
+          </div>
+        </div>
+
+        <div class="card" id="result-card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+            Price Breakdown
+          </div>
+          <div id="result-area">
+            <div class="empty-state"><span class="empty-icon">🧮</span><p>Select dogs and dates above to calculate pricing</p></div>
+          </div>
+          <div id="save-row" class="btn-row" style="display:none">
+            <button class="btn btn-primary" onclick="saveBooking()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+              Save Booking
+            </button>
+            <button class="btn btn-outline" onclick="clearCalc()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOGS -->
+      <div id="page-dogs" class="page">
+        <div class="page-header"><h1>Dog Profiles</h1><p>Manage your regular guests.</p></div>
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add New Dog
+          </div>
+          <div style="display:flex;gap:18px;align-items:flex-start;" class="dog-add-layout">
+            <div>
+              <div class="photo-upload-area" onclick="document.getElementById('photo-file-input').click()" id="photo-upload-area">
+                <div id="photo-preview-wrap">
+                  <div class="upload-placeholder">🐶</div>
+                  <p>Add photo</p>
+                </div>
+              </div>
+              <input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoSelect(this)">
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="grid-2" style="margin-bottom:12px">
+                <div class="field"><label>Dog Name *</label><input type="text" id="new-dog-name" placeholder="e.g. Buddy"></div>
+                <div class="field"><label>Owner Name *</label><input type="text" id="new-owner-name" placeholder="e.g. Sarah Johnson"></div>
+                <div class="field"><label>Phone Number</label><input type="tel" id="new-phone" placeholder="(555) 123-4567"></div>
+                <div class="field"><label>Custom Rate ($/day)</label><input type="number" id="new-rate" placeholder="Blank = default" step="0.01" min="0"></div>
+              </div>
+              <div class="field" style="margin-bottom:14px"><label>Notes / Breed</label><textarea id="new-notes" rows="2" placeholder="e.g. Golden Retriever, friendly, meds at 6pm" style="height:60px"></textarea></div>
+              <button class="btn btn-primary" onclick="addDog()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add Dog
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="dog-list-wrap"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="page-history" class="page">
+        <div class="page-header"><h1>Booking History</h1><p>All saved bookings with invoices.</p></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span id="history-count" style="font-size:14px;color:var(--ink-faint)">0 bookings</span>
+          <button class="btn btn-danger btn-sm" onclick="clearHistory()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
+            Clear All
+          </button>
+        </div>
+        <div id="history-wrap"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="page-header"><h1>Settings</h1><p>Rates, surcharge rules, and business info.</p></div>
+        <div class="card">
+          <div class="settings-section">
+            <h3>💰 Default Rates</h3>
+            <div class="grid-2">
+              <div class="field"><label>Boarding Rate (per 24h)</label><input type="number" id="s-boarding" step="0.01" min="0"><div class="field-hint">Base nightly boarding rate</div></div>
+              <div class="field"><label>Day Care Rate (per day)</label><input type="number" id="s-daycare" step="0.01" min="0"><div class="field-hint">Base daytime-only rate</div></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>⏱ Surcharge Rules</h3>
+            <div class="grid-2">
+              <div class="field"><label>Grace Period Threshold (hours)</label><input type="number" id="s-threshold" step="0.5" min="0" max="23"><div class="field-hint">Extra hours allowed before surcharge</div></div>
+              <div class="field"><label>Surcharge % of daily rate</label><input type="number" id="s-pct" step="1" min="0" max="100"><div class="field-hint">Charged when threshold is exceeded</div></div>
+            </div>
+            <div class="surcharge-preview" id="surcharge-preview"></div>
+          </div>
+          <div class="settings-section">
+            <h3>🏢 Business Info (invoices)</h3>
+            <div class="grid-2">
+              <div class="field"><label>Business Name</label><input type="text" id="s-biz-name" placeholder="Paws & Board"></div>
+              <div class="field"><label>Phone</label><input type="tel" id="s-biz-phone" placeholder="(555) 000-0000"></div>
+              <div class="field"><label>Email</label><input type="email" id="s-biz-email" placeholder="hello@pawsandboard.com"></div>
+              <div class="field"><label>Address</label><input type="text" id="s-biz-addr" placeholder="123 Main St, City, State"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveSettings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Save Settings
+            </button>
+            <button class="btn btn-outline" onclick="resetSettings()">Reset Defaults</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- end main column -->
+</div><!-- end app-shell -->
+
+<!-- Mobile Bottom Nav -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bnav-item active" onclick="showPage('calc')" id="bnav-calc">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
+    Calculate
+  </button>
+  <button class="bnav-item" onclick="showPage('dogs')" id="bnav-dogs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Dogs
+  </button>
+  <button class="bnav-item" onclick="showPage('history')" id="bnav-history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    History
+  </button>
+  <button class="bnav-item" onclick="showPage('settings')" id="bnav-settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    Settings
+  </button>
+</nav>
+
+<!-- Toast -->
+<div id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- Invoice Modal -->
+<div id="invoice-modal-overlay">
+  <div id="invoice-modal">
+    <div id="invoice-modal-header">
+      <h3>Invoice</h3>
+      <div class="header-btns">
+        <button class="btn btn-forest btn-sm" onclick="printInvoice()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print / PDF
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="closeInvoice()">Close</button>
+      </div>
+    </div>
+    <div id="invoice-content"></div>
+  </div>
+</div>
+
+<div id="printable-invoice" style="display:none"></div>
+
+<script>
+/* ── Data ── */
+const DEFAULTS = { boardingRate:55, daycareRate:35, threshold:3, surchargePct:50, bizName:'Paws & Board', bizPhone:'', bizEmail:'', bizAddr:'' };
+function load() { try { return JSON.parse(localStorage.getItem('pawsboard_v2')||'null')||{settings:{...DEFAULTS},dogs:[],history:[]}; } catch(e) { return {settings:{...DEFAULTS},dogs:[],history:[]}; } }
+function save() { localStorage.setItem('pawsboard_v2', JSON.stringify(appData)); }
+
+let appData = load();
+let selectedDogs = new Set();
+let currentService = 'boarding';
+let pendingPhoto = null;
+let currentPage = 'calc';
+
+/* ── Navigation ── */
+function showPage(id) {
+  currentPage = id;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const idx = ['calc','dogs','history','settings'].indexOf(id);
+  if (idx >= 0) {
+    document.querySelectorAll('.nav-item')[idx].classList.add('active');
+    document.getElementById('bnav-' + id).classList.add('active');
+  }
+  // scroll to top
+  document.querySelector('.main').scrollTo(0,0);
+  if (id === 'dogs') renderDogList();
+  if (id === 'history') renderHistory();
+  if (id === 'settings') renderSettings();
+  if (id === 'calc') renderDogChips();
+}
+
+/* ── Toast ── */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ── Calculate ── */
+function renderDogChips() {
+  const g = document.getElementById('dog-chip-grid');
+  const hint = document.getElementById('no-dogs-hint');
+  if (!appData.dogs.length) { g.innerHTML = ''; hint.style.display = 'block'; return; }
+  hint.style.display = 'none';
+  g.innerHTML = appData.dogs.map(d => {
+    const sel = selectedDogs.has(d.id);
+    return `<div class="dog-chip${sel?' selected':''}" onclick="toggleDog('${d.id}')">
+      <div class="dog-chip-avatar">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div>
+      <div class="dog-chip-info">
+        <div class="dog-chip-name">${esc(d.dogName)}</div>
+        <div class="dog-chip-sub">${esc(d.ownerName)}${d.rateOverride?' · $'+parseFloat(d.rateOverride).toFixed(2):''}</div>
+      </div>
+      <div class="chip-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDog(id) {
+  if (selectedDogs.has(id)) selectedDogs.delete(id); else selectedDogs.add(id);
+  renderDogChips(); recalc();
+}
+
+function setService(s) {
+  currentService = s;
+  document.getElementById('svc-boarding').classList.toggle('active', s==='boarding');
+  document.getElementById('svc-daycare').classList.toggle('active', s==='daycare');
+  recalc();
+}
+
+function getTimes() {
+  const ci=document.getElementById('ci-date').value, ct=document.getElementById('ci-time').value;
+  const co=document.getElementById('co-date').value, ot=document.getElementById('co-time').value;
+  if (!ci||!ct||!co||!ot) return null;
+  const inDt=new Date(ci+'T'+ct), outDt=new Date(co+'T'+ot);
+  if (isNaN(inDt)||isNaN(outDt)||outDt<=inDt) return null;
+  return {inDt,outDt};
+}
+
+function calcDog(dog, inDt, outDt) {
+  const s=appData.settings;
+  const rate=dog.rateOverride?parseFloat(dog.rateOverride):(currentService==='boarding'?s.boardingRate:s.daycareRate);
+  const totalHrs=(outDt-inDt)/3600000;
+  if (currentService==='daycare') {
+    const days=Math.max(1,Math.ceil(totalHrs/24));
+    return {rate,fullDays:days,extraHrs:0,surcharge:0,total:+(rate*days).toFixed(2),totalHrs:+totalHrs.toFixed(2)};
+  }
+  const full=Math.floor(totalHrs/24), rem=totalHrs-full*24;
+  const surcharge=rem>s.threshold?+(rate*s.surchargePct/100).toFixed(2):0;
+  let total=rate*full+surcharge;
+  if (full===0&&rem>0) total=rate+surcharge;
+  return {rate,fullDays:full,extraHrs:+rem.toFixed(2),surcharge,total:+total.toFixed(2),totalHrs:+totalHrs.toFixed(2)};
+}
+
+function recalc() {
+  const area=document.getElementById('result-area');
+  const saveRow=document.getElementById('save-row');
+  const times=getTimes();
+  const dogs=appData.dogs.filter(d=>selectedDogs.has(d.id));
+  if (!times||!dogs.length) {
+    area.innerHTML='<div class="empty-state"><span class="empty-icon">🧮</span><p>Select dogs and set check-in / check-out dates</p></div>';
+    saveRow.style.display='none'; return;
+  }
+  const {inDt,outDt}=times;
+  const results=dogs.map(d=>({dog:d,...calcDog(d,inDt,outDt)}));
+  const grand=results.reduce((a,r)=>a+r.total,0);
+  const fmtDt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+  /* Desktop table */
+  const tRows=results.map(r=>{
+    const sc=r.surcharge>0?`<span class="badge badge-warn">+$${r.surcharge.toFixed(2)}</span>`:`<span class="badge badge-ok">None</span>`;
+    return `<tr>
+      <td><div class="dog-row-name">${esc(r.dog.dogName)}</div><div class="dog-row-owner">${esc(r.dog.ownerName)}</div></td>
+      <td>$${r.rate.toFixed(2)}</td>
+      <td>${r.fullDays}d${r.extraHrs>0?' + '+r.extraHrs+'h':''}</td>
+      <td>${sc}</td>
+      <td>$${r.total.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  /* Mobile cards */
+  const mCards=results.map(r=>{
+    const sc=r.surcharge>0?`<div class="mob-detail">Surcharge<span><span class="badge badge-warn">+$${r.surcharge.toFixed(2)}</span></span></div>`:''
+    return `<div class="mob-dog-row">
+      <div class="mob-dog-row-header">
+        <div><div class="mob-dog-name">${esc(r.dog.dogName)}</div><div class="mob-dog-owner">${esc(r.dog.ownerName)}</div></div>
+        <div class="mob-dog-amount">$${r.total.toFixed(2)}</div>
+      </div>
+      <div class="mob-dog-details">
+        <div class="mob-detail">Rate / day<span>$${r.rate.toFixed(2)}</span></div>
+        <div class="mob-detail">Duration<span>${r.fullDays}d${r.extraHrs>0?' + '+r.extraHrs+'h':''}</span></div>
+        ${sc}
+      </div>
+    </div>`;
+  }).join('');
+
+  area.innerHTML=`
+    <div class="breakdown-wrap">
+      <table class="breakdown">
+        <thead><tr><th>Dog / Owner</th><th>Rate</th><th>Duration</th><th>Surcharge</th><th>Amount</th></tr></thead>
+        <tbody>${tRows}</tbody>
+      </table>
+    </div>
+    <div class="mobile-breakdown">${mCards}</div>
+    <div class="grand-total-bar">
+      <div>
+        <div class="grand-total-label">${currentService==='boarding'?'🏡 Boarding':'☀️ Day Care'} Total</div>
+        <div class="stay-meta">${fmtDt(inDt)} → ${fmtDt(outDt)}</div>
+      </div>
+      <div class="grand-total-value">$${grand.toFixed(2)}</div>
+    </div>`;
+  saveRow.style.display='flex';
+}
+
+function saveBooking() {
+  const times=getTimes();
+  const dogs=appData.dogs.filter(d=>selectedDogs.has(d.id));
+  if (!times||!dogs.length) return;
+  const {inDt,outDt}=times;
+  const results=dogs.map(d=>({dog:d,...calcDog(d,inDt,outDt)}));
+  const grand=results.reduce((a,r)=>a+r.total,0);
+  appData.history.unshift({
+    id:Date.now().toString(), savedAt:new Date().toISOString(),
+    service:currentService, checkin:inDt.toISOString(), checkout:outDt.toISOString(),
+    grandTotal:+grand.toFixed(2),
+    entries:results.map(r=>({dogId:r.dog.id,dogName:r.dog.dogName,ownerName:r.dog.ownerName,
+      phone:r.dog.phone,photo:r.dog.photo||null,notes:r.dog.notes||'',
+      rate:r.rate,fullDays:r.fullDays,extraHrs:r.extraHrs,surcharge:r.surcharge,total:r.total}))
+  });
+  save(); toast('Booking saved!');
+}
+
+function clearCalc() {
+  selectedDogs.clear();
+  document.getElementById('ci-date').value='';
+  document.getElementById('ci-time').value='10:00';
+  document.getElementById('co-date').value='';
+  document.getElementById('co-time').value='10:00';
+  renderDogChips(); recalc();
+}
+
+/* ── Dogs ── */
+function handlePhotoSelect(input) {
+  const file=input.files[0]; if (!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    pendingPhoto=e.target.result;
+    document.getElementById('photo-preview-wrap').innerHTML=`<img src="${pendingPhoto}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 4px;border:2px solid var(--cream-dark)">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addDog() {
+  const name=document.getElementById('new-dog-name').value.trim();
+  const owner=document.getElementById('new-owner-name').value.trim();
+  const phone=document.getElementById('new-phone').value.trim();
+  const rate=document.getElementById('new-rate').value.trim();
+  const notes=document.getElementById('new-notes').value.trim();
+  if (!name||!owner) { toast('Dog name and owner name are required.'); return; }
+  appData.dogs.push({id:Date.now().toString(),dogName:name,ownerName:owner,phone,rateOverride:rate?parseFloat(rate):'',notes,photo:pendingPhoto||null});
+  save();
+  ['new-dog-name','new-owner-name','new-phone','new-rate','new-notes'].forEach(id=>document.getElementById(id).value='');
+  pendingPhoto=null;
+  document.getElementById('photo-preview-wrap').innerHTML='<div class="upload-placeholder">🐶</div><p>Add photo</p>';
+  renderDogList(); toast(`${name} added!`);
+}
+
+function deleteDog(id) {
+  if (!confirm('Remove this dog profile?')) return;
+  appData.dogs=appData.dogs.filter(d=>d.id!==id);
+  selectedDogs.delete(id); save(); renderDogList(); toast('Dog removed.');
+}
+
+function renderDogList() {
+  const c=document.getElementById('dog-list-wrap');
+  if (!appData.dogs.length) { c.innerHTML='<div class="empty-state"><span class="empty-icon">🐕</span><p>No dogs added yet.</p></div>'; return; }
+  c.innerHTML='<div class="dog-list">'+appData.dogs.map(d=>`
+    <div class="dog-item">
+      <div class="dog-avatar-lg">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div>
+      <div class="dog-item-info">
+        <div class="dog-item-name">${esc(d.dogName)}</div>
+        <div class="dog-item-owner">${esc(d.ownerName)}</div>
+        <div class="dog-item-meta">
+          ${d.phone?`<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.49 12 19.79 19.79 0 0 1 1.21 3.39 2 2 0 0 1 3.18 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>${esc(d.phone)}</span>`:''}
+          <span>💰 ${d.rateOverride?'$'+parseFloat(d.rateOverride).toFixed(2)+'/day':'Default rate'}</span>
+          ${d.notes?`<span>📋 ${esc(d.notes)}</span>`:''}
+        </div>
+      </div>
+      <div class="dog-item-actions">
+        <button class="btn btn-danger btn-sm" onclick="deleteDog('${d.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Remove
+        </button>
+      </div>
+    </div>`).join('')+'</div>';
+}
+
+/* ── History ── */
+function renderHistory() {
+  const c=document.getElementById('history-wrap');
+  const cnt=document.getElementById('history-count');
+  cnt.textContent=appData.history.length+' booking'+(appData.history.length!==1?'s':'');
+  if (!appData.history.length) { c.innerHTML='<div class="empty-state"><span class="empty-icon">📋</span><p>No bookings saved yet.</p></div>'; return; }
+  const fmtDt=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const fmtTm=s=>new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  c.innerHTML='<div class="history-list">'+appData.history.map(b=>{
+    const svcPill=b.service==='boarding'?'<span class="service-pill service-boarding">🏡 Boarding</span>':'<span class="service-pill service-daycare">☀️ Day Care</span>';
+    const dogPills=b.entries.map(e=>`<div class="history-dog-pill"><div class="history-dog-avatar">${e.photo?`<img src="${e.photo}" alt="">`:'🐶'}</div><span class="history-dog-name">${esc(e.dogName)}</span></div>`).join('');
+    return `<div class="history-item">
+      <div class="history-header">
+        <div class="history-dogs">${dogPills}</div>
+        <div class="history-amount">$${b.grandTotal.toFixed(2)}</div>
+      </div>
+      <div class="history-meta">
+        <span>${svcPill}</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fmtDt(b.checkin)} ${fmtTm(b.checkin)} → ${fmtDt(b.checkout)} ${fmtTm(b.checkout)}</span>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-forest btn-sm" onclick="openInvoice('${b.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          Invoice
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="printFromHistory('${b.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteBooking('${b.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Delete
+        </button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function deleteBooking(id) {
+  if (!confirm('Delete this booking?')) return;
+  appData.history=appData.history.filter(b=>b.id!==id); save(); renderHistory(); toast('Booking deleted.');
+}
+
+function clearHistory() {
+  if (!confirm('Clear all booking history?')) return;
+  appData.history=[]; save(); renderHistory(); toast('History cleared.');
+}
+
+/* ── Invoice ── */
+function buildInvoiceHTML(booking) {
+  const s=appData.settings;
+  const fmtDt=str=>new Date(str).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const fmtTm=str=>new Date(str).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  const invNum='INV-'+booking.id.slice(-6).toUpperCase();
+  const issuedDate=new Date(booking.savedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const bizName=s.bizName||'Paws & Board';
+  const bizLines=[s.bizPhone,s.bizEmail,s.bizAddr].filter(Boolean).join('<br>');
+
+  const dogCards=booking.entries.map(e=>`
+    <div class="inv-dog-card">
+      <div class="inv-dog-ava">${e.photo?`<img src="${e.photo}" alt="">`:'🐶'}</div>
+      <div><div class="inv-dog-card-name">${esc(e.dogName)}</div><div class="inv-dog-card-owner">${esc(e.ownerName)}${e.phone?' · '+esc(e.phone):''}</div></div>
+    </div>`).join('');
+
+  const tRows=booking.entries.map(e=>{
+    const dLabel=booking.service==='boarding'?`${e.fullDays}d${e.extraHrs>0?' + '+e.extraHrs+'h':''}`:`${e.fullDays}d`;
+    const scRow=e.surcharge>0?`<tr><td style="padding-left:10px;color:#7A6558;font-size:11px">↳ Late checkout surcharge (${s.surchargePct}%)</td><td colspan="2"></td><td style="text-align:right;color:#7A6558;font-size:11px">$${e.surcharge.toFixed(2)}</td></tr>`:'';
+    return `<tr><td><strong>${esc(e.dogName)}</strong></td><td>$${e.rate.toFixed(2)}/day</td><td>${dLabel}</td><td>$${(e.total-e.surcharge).toFixed(2)}</td></tr>${scRow}`;
+  }).join('');
+
+  const mobRows=booking.entries.map(e=>{
+    const dLabel=booking.service==='boarding'?`${e.fullDays}d${e.extraHrs>0?' + '+e.extraHrs+'h':''}`:`${e.fullDays}d`;
+    return `<div class="inv-mob-row">
+      <div class="inv-mob-row-header"><span class="inv-mob-row-name">${esc(e.dogName)}</span><span class="inv-mob-row-total">$${e.total.toFixed(2)}</span></div>
+      <div class="inv-mob-row-details">$${e.rate.toFixed(2)}/day · ${dLabel}${e.surcharge>0?' · Surcharge: $'+e.surcharge.toFixed(2):''}</div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="inv-header">
+      <div><div class="inv-brand-paw">🐾</div><div class="inv-brand-name">${esc(bizName)}</div>${bizLines?`<div style="font-size:12px;color:var(--ink-faint);margin-top:4px;line-height:1.5">${bizLines}</div>`:''}</div>
+      <div class="inv-number">
+        <div class="inv-label">Invoice</div><div class="inv-val">${invNum}</div>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:4px">Issued ${issuedDate}</div>
+        <div style="margin-top:8px">${booking.service==='boarding'?'<span class="service-pill service-boarding">🏡 Boarding</span>':'<span class="service-pill service-daycare">☀️ Day Care</span>'}</div>
+      </div>
+    </div>
+    <div class="inv-section-title">Guests</div>
+    <div class="inv-dog-grid">${dogCards}</div>
+    <div class="inv-info-grid">
+      <div class="inv-info-box"><div class="inv-label">Check-In</div><div class="inv-value">${fmtDt(booking.checkin)}<br><strong>${fmtTm(booking.checkin)}</strong></div></div>
+      <div class="inv-info-box"><div class="inv-label">Check-Out</div><div class="inv-value">${fmtDt(booking.checkout)}<br><strong>${fmtTm(booking.checkout)}</strong></div></div>
+    </div>
+    <div class="inv-section-title">Charges</div>
+    <table class="inv-table"><thead><tr><th>Dog</th><th>Rate</th><th>Duration</th><th>Subtotal</th></tr></thead><tbody>${tRows}</tbody></table>
+    <div class="inv-mob-rows">${mobRows}</div>
+    <div class="inv-total-section"><span class="inv-total-label">Total Due</span><span class="inv-total-value">$${booking.grandTotal.toFixed(2)}</span></div>
+    <div class="inv-footer">Thank you for trusting us with your furry family member! 🐾</div>`;
+}
+
+function openInvoice(id) {
+  const b=appData.history.find(b=>b.id===id); if (!b) return;
+  document.getElementById('invoice-content').innerHTML=buildInvoiceHTML(b);
+  document.getElementById('invoice-modal-overlay').classList.add('open');
+  document.getElementById('invoice-modal-overlay').dataset.bid=id;
+  document.getElementById('invoice-modal').scrollTo(0,0);
+}
+
+function closeInvoice() { document.getElementById('invoice-modal-overlay').classList.remove('open'); }
+
+function printInvoice() {
+  const id=document.getElementById('invoice-modal-overlay').dataset.bid;
+  const b=appData.history.find(b=>b.id===id); if (!b) return;
+  const inv=document.getElementById('printable-invoice');
+  inv.innerHTML=buildInvoiceHTML(b); inv.style.display='block';
+  setTimeout(()=>{ window.print(); inv.style.display='none'; },100);
+}
+
+function printFromHistory(id) {
+  const b=appData.history.find(b=>b.id===id); if (!b) return;
+  const inv=document.getElementById('printable-invoice');
+  inv.innerHTML=buildInvoiceHTML(b); inv.style.display='block';
+  setTimeout(()=>{ window.print(); inv.style.display='none'; },100);
+}
+
+document.getElementById('invoice-modal-overlay').addEventListener('click', function(e){ if(e.target===this) closeInvoice(); });
+
+/* ── Settings ── */
+function renderSettings() {
+  const s=appData.settings;
+  document.getElementById('s-boarding').value=s.boardingRate;
+  document.getElementById('s-daycare').value=s.daycareRate;
+  document.getElementById('s-threshold').value=s.threshold;
+  document.getElementById('s-pct').value=s.surchargePct;
+  document.getElementById('s-biz-name').value=s.bizName||'';
+  document.getElementById('s-biz-phone').value=s.bizPhone||'';
+  document.getElementById('s-biz-email').value=s.bizEmail||'';
+  document.getElementById('s-biz-addr').value=s.bizAddr||'';
+  updateSurchargePreview();
+}
+
+function updateSurchargePreview() {
+  const t=parseFloat(document.getElementById('s-threshold').value)||3;
+  const p=parseFloat(document.getElementById('s-pct').value)||50;
+  const r=parseFloat(document.getElementById('s-boarding').value)||55;
+  document.getElementById('surcharge-preview').innerHTML=
+    `<strong>Rule:</strong> If check-out is more than <strong>${t} hour${t!==1?'s':''}</strong> past a full 24h period, a surcharge of <strong>${p}%</strong> of the daily rate (<strong>$${(r*p/100).toFixed(2)}</strong>) is added.`;
+}
+
+['s-threshold','s-pct','s-boarding'].forEach(id=>document.getElementById(id).addEventListener('input',updateSurchargePreview));
+
+function saveSettings() {
+  appData.settings={
+    boardingRate:parseFloat(document.getElementById('s-boarding').value)||DEFAULTS.boardingRate,
+    daycareRate:parseFloat(document.getElementById('s-daycare').value)||DEFAULTS.daycareRate,
+    threshold:parseFloat(document.getElementById('s-threshold').value)||DEFAULTS.threshold,
+    surchargePct:parseFloat(document.getElementById('s-pct').value)||DEFAULTS.surchargePct,
+    bizName:document.getElementById('s-biz-name').value.trim()||DEFAULTS.bizName,
+    bizPhone:document.getElementById('s-biz-phone').value.trim(),
+    bizEmail:document.getElementById('s-biz-email').value.trim(),
+    bizAddr:document.getElementById('s-biz-addr').value.trim(),
+  };
+  save(); toast('Settings saved!'); recalc();
+}
+
+function resetSettings() {
+  if (!confirm('Reset to defaults?')) return;
+  appData.settings={...DEFAULTS}; save(); renderSettings(); toast('Reset to defaults.');
+}
+
+/* ── Utils ── */
+function esc(s) { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── Init ── */
+document.getElementById('ci-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('co-date').value=new Date().toISOString().split('T')[0];
+renderDogChips();
+renderSettings();
+</script>
+</body>
+</html>
