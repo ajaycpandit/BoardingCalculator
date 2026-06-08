@@ -1610,16 +1610,30 @@ async function saveCio(){
       if(stamp<=inDt){ setSyncState('ok'); toast('Check-out must be after check-in.', true); return; }
       const dog=dogs.find(x=>x.id===r.dog_id);
       const res=calcDogSvc(dog,inDt,stamp,r.service);
-      const booking={ id:Date.now().toString(), saved_at:new Date().toISOString(), service:r.service, checkin:inDt.toISOString(), checkout:stamp.toISOString(), requested_checkin:r.checkin, requested_checkout:r.checkout, grand_total:res.total, entries:[{dogId:r.dog_id,dogName:r.dog_name,ownerName:r.owner_name,phone:dog?dog.phone:'',photo:dog?dog.photo:null,notes:dog?dog.notes:'',rate:res.rate,fullDays:res.fullDays,extraHrs:res.extraHrs,surcharge:res.surcharge,total:res.total}] };
-      await dbInsertBooking(booking);
+      const booking={ id:Date.now().toString(), saved_at:new Date().toISOString(), service:r.service, checkin:inDt.toISOString(), checkout:stamp.toISOString(), grand_total:res.total, entries:[{dogId:r.dog_id,dogName:r.dog_name,ownerName:r.owner_name,phone:dog?dog.phone:'',photo:dog?dog.photo:null,notes:dog?dog.notes:'',rate:res.rate,fullDays:res.fullDays,extraHrs:res.extraHrs,surcharge:res.surcharge,total:res.total,requested_checkin:r.checkin,requested_checkout:r.checkout}] };
+      // 1) Insert booking (this is the critical step)
+      try {
+        await dbInsertBooking(booking);
+      } catch(insErr) {
+        setSyncState('err');
+        console.error('Booking insert failed:', insErr);
+        toast('Could not save booking: '+insErr.message, true);
+        return;
+      }
       bookings.unshift(booking);
-      await dbUpdReq(r.id,{status:'completed', actual_checkin:inDt.toISOString(), actual_checkout:stamp.toISOString(), final_total:res.total, booking_id:booking.id});
+      // 2) Update reservation status (best-effort; don't fail checkout if columns missing)
+      try {
+        await dbUpdReq(r.id,{status:'completed', actual_checkin:inDt.toISOString(), actual_checkout:stamp.toISOString(), final_total:res.total, booking_id:booking.id});
+      } catch(updErr) {
+        console.warn('Reservation status update failed (non-fatal):', updErr);
+      }
       r.status='completed'; r.actual_checkin=inDt.toISOString(); r.actual_checkout=stamp.toISOString(); r.final_total=res.total; r.booking_id=booking.id;
       setSyncState('ok'); closeCio(); renderRequests(); updateBadges();
       toast('Checked out! Final: $'+res.total.toFixed(2));
-      openInv(booking.id);
+      // 3) Show invoice (best-effort; a render hiccup must not look like a checkout failure)
+      try { openInv(booking.id); } catch(invErr) { console.warn('Invoice open failed:', invErr); }
     }
-  }catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
+  }catch(e){ setSyncState('err'); console.error('Checkout error:',e); toast('Error: '+e.message, true); }
 }
 
 /* ── Edit reservation ── */
@@ -1775,6 +1789,8 @@ function buildInv(b) {
   const invNum='INV-'+b.id.slice(-6).toUpperCase();
   const issued=new Date(b.saved_at||b.savedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const entries=b.entries||[];
+  const reqIn=b.requested_checkin||(entries[0]&&entries[0].requested_checkin);
+  const reqOut=b.requested_checkout||(entries[0]&&entries[0].requested_checkout);
   const dcards=entries.map(e=>`<div class="idc"><div class="ida">${e.photo?`<img src="${e.photo}" alt="">`:'🐶'}</div><div><div class="idname">${esc(e.dogName||'')}</div><div class="idowner">${esc(e.ownerName||'')}${e.phone?' · '+esc(e.phone):''}</div></div></div>`).join('');
   const rows=entries.map(e=>{
     const dl=b.service==='boarding'?`${e.fullDays}d${e.extraHrs>0?' + '+e.extraHrs+'h':''}`:`${e.fullDays}d`;
@@ -1787,8 +1803,8 @@ function buildInv(b) {
       <div class="inum"><div class="ilbl">Invoice</div><div class="ival">${invNum}</div><div style="font-size:11px;color:var(--ink-faint);margin-top:3px">Issued ${issued}</div><div style="margin-top:7px">${b.service==='boarding'?'<span class="sp sp-b">🏡 Boarding</span>':'<span class="sp sp-d">☀️ Day Care</span>'}</div></div>
     </div>
     <div class="ilbl" style="margin-bottom:7px">Guests</div><div class="idg">${dcards}</div>
-    ${(b.requested_checkin||b.requested_checkout)?`<div class="iig"><div><div class="ilbl">Requested Check-In</div><div class="iiv" style="color:var(--ink-light)">${fd(b.requested_checkin)}<br>${ft(b.requested_checkin)}</div></div><div><div class="ilbl">Requested Check-Out</div><div class="iiv" style="color:var(--ink-light)">${fd(b.requested_checkout)}<br>${ft(b.requested_checkout)}</div></div></div>`:''}
-    <div class="iig"><div><div class="ilbl">${(b.requested_checkin||b.requested_checkout)?'Actual ':''}Check-In</div><div class="iiv">${fd(b.checkin)}<br><strong>${ft(b.checkin)}</strong></div></div><div><div class="ilbl">${(b.requested_checkin||b.requested_checkout)?'Actual ':''}Check-Out</div><div class="iiv">${fd(b.checkout)}<br><strong>${ft(b.checkout)}</strong></div></div></div>
+    ${(reqIn||reqOut)?`<div class="iig"><div><div class="ilbl">Requested Check-In</div><div class="iiv" style="color:var(--ink-light)">${fd(reqIn)}<br>${ft(reqIn)}</div></div><div><div class="ilbl">Requested Check-Out</div><div class="iiv" style="color:var(--ink-light)">${fd(reqOut)}<br>${ft(reqOut)}</div></div></div>`:''}
+    <div class="iig"><div><div class="ilbl">${(reqIn||reqOut)?'Actual ':''}Check-In</div><div class="iiv">${fd(b.checkin)}<br><strong>${ft(b.checkin)}</strong></div></div><div><div class="ilbl">${(reqIn||reqOut)?'Actual ':''}Check-Out</div><div class="iiv">${fd(b.checkout)}<br><strong>${ft(b.checkout)}</strong></div></div></div>
     <div class="ilbl" style="margin-bottom:7px">Charges</div>
     <table class="itable"><thead><tr><th>Dog</th><th>Rate</th><th>Duration</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="itotal"><span class="itlbl">Total Due</span><span class="itval">$${parseFloat(b.grand_total).toFixed(2)}</span></div>
