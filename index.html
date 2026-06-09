@@ -10,15 +10,15 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --cream:#FBF7F1;--cream-mid:#F3ECE1;--cream-dark:#E7DCCB;
-  --brown-light:#7FB5AE;--brown:#2E8B82;--brown-dark:#1F6B63;
-  --forest:#2E8B82;--forest-light:#7FB5AE;--forest-pale:#E6F2F0;
-  --ink:#23201C;--ink-mid:#4A4640;--ink-light:#7C756B;--ink-faint:#AEA699;
+  --cream:#FBF6EF;--cream-mid:#F5ECE0;--cream-dark:#EAD9C6;
+  --brown-light:#F0A868;--brown:#E07B2E;--brown-dark:#C25E18;
+  --forest:#E07B2E;--forest-light:#F0A868;--forest-pale:#FCEEDF;
+  --ink:#2A211A;--ink-mid:#4F4339;--ink-light:#7E6F61;--ink-faint:#B3A595;
   --white:#FFFFFF;--danger:#D9534F;--danger-pale:#FBEDEC;
   --gold:#C8841C;--gold-pale:#FDF4E5;
   --coral:#E8674C;--coral-pale:#FCEEEA;
   --r1:6px;--r2:10px;--r3:16px;--r4:20px;
-  --s1:0 1px 4px rgba(31,40,38,.07);--s2:0 4px 16px rgba(31,40,38,.10);--s3:0 8px 32px rgba(31,40,38,.16);
+  --s1:0 1px 4px rgba(42,33,26,.07);--s2:0 4px 16px rgba(42,33,26,.10);--s3:0 8px 32px rgba(42,33,26,.16);
   --nav-h:62px;
 }
 html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -142,8 +142,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
   .mtb-name{font-family:'DM Serif Display',serif;font-size:17px;color:var(--cream)}
   .mtb-sync{font-size:11px;color:var(--brown-light);display:flex;align-items:center;gap:5px}
   .pg{padding:18px 14px;padding-bottom:calc(18px + var(--nav-h) + env(safe-area-inset-bottom))}
-  .bn{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--brown-dark);border-top:1px solid rgba(255,255,255,.1);padding-bottom:env(safe-area-inset-bottom);z-index:200}
-  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px;gap:3px;cursor:pointer;border:none;background:none;color:var(--brown-light);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;transition:color .15s;min-height:var(--nav-h);-webkit-tap-highlight-color:transparent}
+  .bn{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--brown-dark);border-top:1px solid rgba(255,255,255,.1);padding-bottom:env(safe-area-inset-bottom);z-index:200;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .bn::-webkit-scrollbar{display:none}
+  .bni{flex:1 0 auto;min-width:18%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px;gap:3px;cursor:pointer;border:none;background:none;color:var(--brown-light);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;transition:color .15s;min-height:var(--nav-h);-webkit-tap-highlight-color:transparent}
   .bni svg{width:21px;height:21px}
   .bni.active{color:var(--cream)}
   .g2{grid-template-columns:1fr!important}
@@ -499,7 +500,7 @@ table.bt tr:last-child td{border-bottom:none}
           <div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>New Request</div>
           <div class="g2" style="margin-bottom:11px">
             <div class="fd"><label>Dog</label>
-              <div class="dd-wrap" style="margin-bottom:0"><button class="dd-btn" id="req-dd-btn" onclick="toggleReqDD()"><span id="req-dd-lbl" style="color:var(--ink-faint)">Select dog…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></button><div class="dd-menu" id="req-dd-menu" style="display:none"></div></div>
+              <div class="dd-wrap" style="margin-bottom:0"><button class="dd-btn" id="req-dd-btn" onclick="toggleReqDD()"><span id="req-dd-lbl" style="color:var(--ink-faint)">Select dog…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></button><div class="dd-menu" id="req-dd-menu" style="display:none"><div style="padding:8px;position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--cream-mid)"><input type="text" id="req-dd-search" placeholder="Search dogs…" oninput="renderReqDDList()" onclick="event.stopPropagation()" style="width:100%;height:36px;padding:0 11px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--cream)"></div><div id="req-dd-list"></div></div></div>
             </div>
             <div class="fd"><label>Service</label><select id="req-svc"><option value="boarding">🏡 Boarding</option><option value="daycare">☀️ Day Care</option></select></div>
             <div class="fd"><label>Check-In Date</label><input type="date" id="req-ci"></div>
@@ -660,6 +661,7 @@ table.bt tr:last-child td{border-bottom:none}
   <button class="bni" onclick="goPage('dogs')" id="bni-dogs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Dogs</button>
   <button class="bni" onclick="goPage('history')" id="bni-history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>History</button>
   <button class="bni" onclick="goPage('finance')" id="bni-finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finance</button>
+  <button class="bni" onclick="goPage('settings')" id="bni-settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings</button>
 </nav>
 
 <!-- Desktop notification bell -->
@@ -1581,12 +1583,19 @@ document.getElementById('day-mo').addEventListener('click', function(e){ if(e.ta
    REQUESTS
 ═══════════════════════════════════════ */
 function renderReqDD(){
-  const btn=document.getElementById('req-dd-btn'), menu=document.getElementById('req-dd-menu');
+  const btn=document.getElementById('req-dd-btn');
   if(!btn) return;
   if(!dogs.length){ btn.querySelector('span').textContent='No dogs yet'; return; }
-  menu.innerHTML=dogs.map(d=>`<div class="dd-item${reqSelDog===d.id?' sel':''}" onclick="selectReqDog('${d.id}')"><div class="dd-ava">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div><div style="flex:1;min-width:0"><div class="dd-name">${esc(d.dog_name)}</div><div class="dd-sub">${esc(d.owner_name)}</div></div><div class="dd-chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>`).join('');
+  renderReqDDList();
 }
-function toggleReqDD(){ reqDdOpen=!reqDdOpen; document.getElementById('req-dd-menu').style.display=reqDdOpen?'block':'none'; document.getElementById('req-dd-btn').classList.toggle('open',reqDdOpen); }
+function renderReqDDList(){
+  const list=document.getElementById('req-dd-list'); if(!list) return;
+  const q=(document.getElementById('req-dd-search')?.value||'').toLowerCase().trim();
+  const filtered=dogs.filter(d=>!q||(d.dog_name||'').toLowerCase().includes(q)||(d.owner_name||'').toLowerCase().includes(q));
+  if(!filtered.length){ list.innerHTML='<div style="padding:14px;text-align:center;font-size:13px;color:var(--ink-faint)">No dogs match "'+esc(q)+'"</div>'; return; }
+  list.innerHTML=filtered.map(d=>`<div class="dd-item${reqSelDog===d.id?' sel':''}" onclick="selectReqDog('${d.id}')"><div class="dd-ava">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div><div style="flex:1;min-width:0"><div class="dd-name">${esc(d.dog_name)}</div><div class="dd-sub">${esc(d.owner_name)}</div></div><div class="dd-chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>`).join('');
+}
+function toggleReqDD(){ reqDdOpen=!reqDdOpen; document.getElementById('req-dd-menu').style.display=reqDdOpen?'block':'none'; document.getElementById('req-dd-btn').classList.toggle('open',reqDdOpen); if(reqDdOpen){ const s=document.getElementById('req-dd-search'); if(s){ s.value=''; renderReqDDList(); setTimeout(()=>s.focus(),50); } } }
 function closeReqDD(){ reqDdOpen=false; const m=document.getElementById('req-dd-menu'); if(m) m.style.display='none'; const b=document.getElementById('req-dd-btn'); if(b) b.classList.remove('open'); }
 function selectReqDog(id){
   reqSelDog=id; const d=dogs.find(x=>x.id===id), lbl=document.getElementById('req-dd-lbl');
