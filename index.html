@@ -366,6 +366,19 @@ table.bt tr:last-child td{border-bottom:none}
   <div class="ls" id="load-status">Connecting…</div>
 </div>
 
+<div id="login-screen" style="position:fixed;inset:0;background:var(--brown-dark);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:20px">
+  <div style="background:var(--white);border-radius:var(--r4);box-shadow:var(--s3);padding:30px 26px;width:100%;max-width:360px">
+    <img id="logo-login" alt="Shvaan Pet Care" style="width:170px;max-width:80%;height:64px;object-fit:contain;display:block;margin:0 auto 18px">
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink);text-align:center;margin-bottom:4px">Staff Sign In</div>
+    <div style="font-size:12px;color:var(--ink-faint);text-align:center;margin-bottom:20px">Enter your staff credentials to continue</div>
+    <div class="fd" style="margin-bottom:12px"><label>Email</label><input type="email" id="login-email" placeholder="you@shvaanpetcare.com" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"></div>
+    <div class="fd" style="margin-bottom:8px"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div id="login-err" style="font-size:12px;color:var(--danger);min-height:16px;margin-bottom:8px"></div>
+    <button class="btn btn-p" onclick="doLogin()" style="width:100%" id="login-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign In</button>
+    <div style="font-size:11px;color:var(--ink-faint);text-align:center;margin-top:16px">Accounts are created by your administrator in Supabase.</div>
+  </div>
+</div>
+
 <div class="app" id="app-shell" style="display:none">
   <!-- Desktop sidebar -->
   <aside class="sb">
@@ -400,9 +413,9 @@ table.bt tr:last-child td{border-bottom:none}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Settings
       </button>
     </nav>
-    <div class="sb-foot">
-      <span class="sync-dot" id="sync-dot"></span>
-      <span id="sync-lbl">Connected</span>
+    <div class="sb-foot" style="flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px"><span class="sync-dot" id="sync-dot"></span><span id="sync-lbl">Connected</span></div>
+      <button onclick="doLogout()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-size:11px;display:flex;align-items:center;gap:5px;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span id="logout-email">Sign out</span></button>
     </div>
   </aside>
 
@@ -844,7 +857,16 @@ table.bt tr:last-child td{border-bottom:none}
   <button class="btn btn-p" onclick="saveEditBooking()" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Save & Recalculate</button>
 </div></div></div>
 
-<!-- Toast -->
+<!-- Payment modal -->
+<div class="mo" id="pay-mo"><div class="mo-inner"><div class="mo-head"><h3>Record Payment</h3><button class="btn btn-o sm" onclick="closePayment()">Close</button></div>
+<div class="mo-body">
+  <div id="pay-summary" style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--r2);padding:12px 14px;margin-bottom:14px"></div>
+  <div class="fd" style="margin-bottom:12px"><label>Payment Method</label>
+    <select id="pay-method"><option>Cash</option><option>Card</option><option>Venmo/Zelle</option><option>Other</option></select>
+  </div>
+  <div class="fd" style="margin-bottom:14px"><label>Date Received</label><input type="date" id="pay-date"></div>
+  <button class="btn btn-g" onclick="savePayment()" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Mark as Paid</button>
+</div></div></div>
 <div class="toast" id="toast">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
   <span id="toast-msg"></span>
@@ -872,12 +894,13 @@ table.bt tr:last-child td{border-bottom:none}
 const SB_URL = 'https://xtvyyszobucmaktpulxt.supabase.co';
 const SB_KEY = 'sb_publishable_yz_iycmCCjIld2KoB_SNDg_TLHYHdhv';
 
+let authToken = null; // Supabase user access token when signed in
 async function sbFetch(path, method='GET', body=null) {
   const opts = {
     method,
     headers: {
       'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
+      'Authorization': 'Bearer ' + (authToken || SB_KEY),
       'Content-Type': 'application/json',
       'Prefer': method === 'POST' ? 'return=representation' : ''
     }
@@ -984,6 +1007,7 @@ async function init() {
     setTimeout(()=>{ document.getElementById('loading').style.display='none'; },400);
     document.getElementById('app-shell').style.display='';
     applyLogo();
+    const le=document.getElementById('logout-email'); if(le&&currentUser&&currentUser.email) le.textContent=currentUser.email;
     renderDD();
     renderSettings();
     renderReqDD();
@@ -2095,13 +2119,14 @@ function renderHistory() {
     return `<div class="hi">
       <div class="hh">
         <div class="hdogs">${dpills}</div>
-        <div class="hamount">$${parseFloat(b.grand_total).toFixed(2)}</div>
+        <div style="text-align:right"><div class="hamount">$${parseFloat(b.grand_total).toFixed(2)}</div>${b.paid?`<div style="font-size:10px;font-weight:600;color:var(--forest);margin-top:2px">✓ Paid${b.payment_method?' · '+esc(b.payment_method):''}</div>`:'<div style="font-size:10px;font-weight:600;color:var(--danger);margin-top:2px">● Unpaid</div>'}</div>
       </div>
       <div class="hmeta">
         <span>${svcPill}</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${fd(b.checkin)} ${ft(b.checkin)} → ${fd(b.checkout)} ${ft(b.checkout)}</span>
       </div>
       <div class="hac">
+        ${b.paid?`<button class="btn btn-o sm" onclick="markUnpaid('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/></svg>Mark Unpaid</button>`:`<button class="btn btn-g sm" onclick="openPayment('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg>Mark Paid</button>`}
         <button class="btn btn-g sm" onclick="openInv('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>Invoice</button>
         <button class="btn btn-o sm" onclick="openEditBooking('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit Dates</button>
         <button class="btn btn-o sm" onclick="printDirect('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print</button>
@@ -2117,6 +2142,37 @@ async function deleteBooking(id) {
   try { await dbDeleteBooking(id); bookings=bookings.filter(b=>b.id!==id); setSyncState('ok'); renderHistory(); updateBadges(); toast('Booking deleted.'); }
   catch(e){ setSyncState('err'); toast('Error: '+e.message,true); }
 }
+
+/* ── Payment tracking ── */
+let payBkId=null;
+function openPayment(id){
+  const b=bookings.find(x=>x.id===id); if(!b) return;
+  payBkId=id;
+  const names=(b.entries||[]).map(e=>e.dogName||'').join(', ');
+  document.getElementById('pay-summary').innerHTML=`<div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(names)}</div><div style="font-size:12px;color:var(--ink-faint);margin-top:2px">Amount due: <strong style="color:var(--ink)">$${parseFloat(b.grand_total).toFixed(2)}</strong></div>`;
+  document.getElementById('pay-date').value=dStr(new Date());
+  document.getElementById('pay-method').value='Cash';
+  document.getElementById('pay-mo').classList.add('on');
+}
+function closePayment(){ document.getElementById('pay-mo').classList.remove('on'); payBkId=null; }
+async function savePayment(){
+  const b=bookings.find(x=>x.id===payBkId); if(!b) return;
+  const upd={ paid:true, payment_method:document.getElementById('pay-method').value, paid_at:document.getElementById('pay-date').value||dStr(new Date()) };
+  setSyncState('busy');
+  try{
+    await dbUpdateBooking(b.id, upd);
+    Object.assign(b, upd);
+    setSyncState('ok'); closePayment(); renderHistory(); refreshActive(); toast('Payment recorded.');
+  }catch(e){ setSyncState('err'); toast('Could not save payment: '+e.message+' (did you add the paid columns?)', true); }
+}
+async function markUnpaid(id){
+  const b=bookings.find(x=>x.id===id); if(!b) return;
+  if(!confirm('Mark this invoice as unpaid?')) return;
+  setSyncState('busy');
+  try{ await dbUpdateBooking(id,{paid:false,payment_method:null,paid_at:null}); b.paid=false; b.payment_method=null; b.paid_at=null; setSyncState('ok'); renderHistory(); refreshActive(); toast('Marked unpaid.'); }
+  catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
+}
+document.getElementById('pay-mo').addEventListener('click',function(e){ if(e.target===this) closePayment(); });
 
 async function clearHistory() {
   if(!confirm('Clear ALL booking history? This cannot be undone.')) return;
@@ -2254,12 +2310,14 @@ function renderFinance(){
     .sort((a,b)=>new Date(b.checkout||b.saved_at)-new Date(a.checkout||a.saved_at));
   const total=inRange.reduce((s,b)=>s+parseFloat(b.grand_total||0),0);
   const cnt=inRange.length;
-  const avg=cnt?total/cnt:0;
+  const collected=inRange.filter(b=>b.paid).reduce((s,b)=>s+parseFloat(b.grand_total||0),0);
+  const outstanding=total-collected;
+  const unpaidCnt=inRange.filter(b=>!b.paid).length;
   // Summary cards
   document.getElementById('fin-cards').innerHTML=`
-    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Total Income</div><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--brown-dark);margin-top:4px">$${total.toFixed(2)}</div></div>
-    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Invoices</div><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink);margin-top:4px">${cnt}</div></div>
-    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Avg / Invoice</div><div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink);margin-top:4px">$${avg.toFixed(2)}</div></div>`;
+    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Total Billed</div><div style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--brown-dark);margin-top:4px">$${total.toFixed(0)}</div><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${cnt} invoice${cnt!==1?'s':''}</div></div>
+    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Collected</div><div style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--forest);margin-top:4px">$${collected.toFixed(0)}</div><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">paid</div></div>
+    <div class="card" style="margin:0;text-align:center"><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint)">Outstanding</div><div style="font-family:'DM Serif Display',serif;font-size:26px;color:${outstanding>0?'var(--danger)':'var(--ink)'};margin-top:4px">$${outstanding.toFixed(0)}</div><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${unpaidCnt} unpaid</div></div>`;
   // Monthly chart
   const byMonth={};
   inRange.forEach(b=>{ const d=new Date(b.checkout||b.saved_at); const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); byMonth[k]=(byMonth[k]||0)+parseFloat(b.grand_total||0); });
@@ -2286,7 +2344,7 @@ function renderFinance(){
     const names=(b.entries||[]).map(e=>e.dogName||'').join(', ');
     return `<div onclick="openInv('${b.id}')" style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--cream-mid);cursor:pointer">
       <div style="font-size:18px">${b.service==='boarding'?'🏡':'☀️'}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(names)}</div><div style="font-size:11px;color:var(--ink-faint)">INV-${b.id.slice(-6).toUpperCase()} · ${fd(b.checkout||b.saved_at)}</div></div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(names)} ${b.paid?'<span style="font-size:10px;color:var(--forest);font-weight:600">✓ Paid</span>':'<span style="font-size:10px;color:var(--danger);font-weight:600">● Unpaid</span>'}</div><div style="font-size:11px;color:var(--ink-faint)">INV-${b.id.slice(-6).toUpperCase()} · ${fd(b.checkout||b.saved_at)}</div></div>
       <div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink)">$${parseFloat(b.grand_total).toFixed(2)}</div>
       <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
     </div>`;
@@ -2349,6 +2407,7 @@ function buildInv(b) {
     <table class="itable"><thead><tr><th>Dog</th><th>Rate</th><th>Duration</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
     ${(entries[0]&&entries[0].discount>0)?`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--coral);margin-bottom:8px;padding:0 2px"><span>Discount${entries[0].discount_type==='pct'?' ('+entries[0].discount_val+'%)':''}</span><span>−$${parseFloat(entries[0].discount).toFixed(2)}</span></div>`:''}
     <div class="itotal"><span class="itlbl">Total Due</span><span class="itval">$${parseFloat(b.grand_total).toFixed(2)}</span></div>
+    ${b.paid?`<div style="text-align:right;margin-top:8px;font-size:13px;font-weight:600;color:var(--forest)">✓ PAID${b.payment_method?' · '+esc(b.payment_method):''}${b.paid_at?' · '+new Date(b.paid_at+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div>`:''}
     <div class="ifooter">Thank you for trusting us with your furry family member! 🐾</div>`;
 }
 
@@ -2493,7 +2552,75 @@ async function resetSettings() {
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ── Start ── */
-init();
+/* ═══════════════════════════════════════
+   AUTHENTICATION (Supabase Auth)
+═══════════════════════════════════════ */
+let currentUser=null;
+function showLogin(){
+  document.getElementById('loading').style.display='none';
+  const ls=document.getElementById('login-screen'); ls.style.display='flex';
+  const lg=document.getElementById('logo-login'); if(lg) lg.src=(localStorage.getItem('shvaan_logo')||DEFAULT_LOGO);
+  setTimeout(()=>{ const e=document.getElementById('login-email'); if(e) e.focus(); },100);
+}
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-err'), btn=document.getElementById('login-btn');
+  errEl.textContent='';
+  if(!email||!pass){ errEl.textContent='Enter your email and password.'; return; }
+  btn.disabled=true; btn.style.opacity='.7'; btn.innerHTML='Signing in…';
+  try{
+    const res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok){ throw new Error(data.error_description||data.msg||data.error||'Sign in failed'); }
+    authToken=data.access_token;
+    currentUser=data.user;
+    // persist session
+    try{ localStorage.setItem('shvaan_session', JSON.stringify({token:data.access_token, refresh:data.refresh_token, email:(data.user&&data.user.email)||email, exp:Date.now()+(data.expires_in||3600)*1000})); }catch(e){}
+    // staff name defaults to email prefix if not set
+    if(!staffName){ staffName=(email.split('@')[0]||'Staff'); localStorage.setItem('shvaan_staff',staffName); }
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('login-pass').value='';
+    document.getElementById('loading').style.display='flex';
+    document.getElementById('loading').style.opacity='1';
+    init();
+  }catch(e){
+    errEl.textContent=e.message;
+    btn.disabled=false; btn.style.opacity='1'; btn.innerHTML='Sign In';
+  }
+}
+async function tryRestoreSession(){
+  let sess=null;
+  try{ sess=JSON.parse(localStorage.getItem('shvaan_session')||'null'); }catch(e){}
+  if(!sess||!sess.token){ showLogin(); return; }
+  // If token still valid by our clock, use it; otherwise try refresh
+  if(sess.exp && Date.now()<sess.exp-60000){
+    authToken=sess.token; currentUser={email:sess.email};
+    init(); return;
+  }
+  // attempt refresh
+  try{
+    const res=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:sess.refresh})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error('expired');
+    authToken=data.access_token; currentUser=data.user||{email:sess.email};
+    localStorage.setItem('shvaan_session', JSON.stringify({token:data.access_token, refresh:data.refresh_token, email:(data.user&&data.user.email)||sess.email, exp:Date.now()+(data.expires_in||3600)*1000}));
+    init();
+  }catch(e){ localStorage.removeItem('shvaan_session'); showLogin(); }
+}
+function doLogout(){
+  if(!confirm('Sign out?')) return;
+  authToken=null; currentUser=null;
+  try{ localStorage.removeItem('shvaan_session'); }catch(e){}
+  location.reload();
+}
+tryRestoreSession();
 </script>
 </body>
 </html>
