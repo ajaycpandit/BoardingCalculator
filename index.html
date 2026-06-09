@@ -537,8 +537,9 @@ table.bt tr:last-child td{border-bottom:none}
         <div class="card">
           <div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>New Request</div>
           <div class="g2" style="margin-bottom:11px">
-            <div class="fd"><label>Dog</label>
-              <div class="dd-wrap" style="margin-bottom:0"><button class="dd-btn" id="req-dd-btn" onclick="toggleReqDD()"><span id="req-dd-lbl" style="color:var(--ink-faint)">Select dog…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></button><div class="dd-menu" id="req-dd-menu" style="display:none"><div style="padding:8px;position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--cream-mid)"><input type="text" id="req-dd-search" placeholder="Search dogs…" oninput="renderReqDDList()" onclick="event.stopPropagation()" style="width:100%;height:36px;padding:0 11px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--cream)"></div><div id="req-dd-list"></div></div></div>
+            <div class="fd"><label>Dog(s)</label>
+              <div class="dd-wrap" style="margin-bottom:0"><button class="dd-btn" id="req-dd-btn" onclick="toggleReqDD()"><span id="req-dd-lbl" style="color:var(--ink-faint)">Select dog(s)…</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></button><div class="dd-menu" id="req-dd-menu" style="display:none"><div style="padding:8px;position:sticky;top:0;background:var(--white);border-bottom:1px solid var(--cream-mid)"><input type="text" id="req-dd-search" placeholder="Search dogs…" oninput="renderReqDDList()" onclick="event.stopPropagation()" style="width:100%;height:36px;padding:0 11px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--cream)"></div><div id="req-dd-list"></div></div></div>
+              <div class="sel-tags" id="req-sel-tags"></div>
             </div>
             <div class="fd"><label>Service</label><select id="req-svc"><option value="boarding">🏡 Boarding</option><option value="daycare">☀️ Day Care</option></select></div>
             <div class="fd"><label>Check-In Date</label><input type="date" id="req-ci"></div>
@@ -617,16 +618,33 @@ table.bt tr:last-child td{border-bottom:none}
           </div>
           <div id="imp-result" style="margin-top:10px;font-size:12px;display:none"></div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px;position:relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" stroke-width="2" style="width:16px;height:16px;position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="dog-search" placeholder="Search dogs or owners…" oninput="renderDogList()" style="width:100%;height:42px;padding:0 12px 0 36px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;background:var(--white)">
+          </div>
+          <div class="svc-tog" style="margin-bottom:0;width:auto;flex:none">
+            <button class="svc-btn active" id="dogview-card" onclick="setDogView('card')" style="flex:none;padding:9px 14px">⊞ Cards</button>
+            <button class="svc-btn" id="dogview-list" onclick="setDogView('list')" style="flex:none;padding:9px 14px">☰ List</button>
+          </div>
+        </div>
+        <div id="dog-count" style="font-size:12px;color:var(--ink-faint);margin-bottom:10px"></div>
         <div id="dog-list-wrap"></div>
       </div>
 
       <!-- HISTORY -->
       <div id="pg-history" class="pg">
         <div class="ph"><h1>Booking History</h1><p>All saved bookings — shared across all users.</p></div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px">
           <span id="hist-cnt" style="font-size:13px;color:var(--ink-faint)">0 bookings</span>
-          <button class="btn btn-d sm" onclick="clearHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Clear All</button>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-g sm" onclick="exportBookings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 3v12M8 11l4 4 4-4M20 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2"/></svg>Export</button>
+            <button class="btn btn-o sm" onclick="document.getElementById('bk-import-file').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 21V9M8 13l4-4 4 4M20 7v-2a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2"/></svg>Import Past</button>
+            <input type="file" id="bk-import-file" accept=".xlsx,.xls" style="display:none" onchange="importBookings(this)">
+            <button class="btn btn-d sm" onclick="clearHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Clear All</button>
+          </div>
         </div>
+        <div id="bk-import-result" style="font-size:12px;display:none;margin-bottom:12px"></div>
         <div id="hist-wrap"></div>
       </div>
 
@@ -975,7 +993,7 @@ function applyLogo(){ const l=currentLogo(); ['logo-loading','logo-sidebar','log
 let dogs=[], bookings=[], requests=[], visitNotes=[], settings={...DEF};
 let staffName=localStorage.getItem('shvaan_staff')||'';
 let selDogs=new Set(), svc='boarding', pendingPhoto=null, pendingVaccFile=null, ddOpen=false, invBid=null;
-let calYear, calMonth, notifOpen=false, reqDdOpen=false, reqSelDog=null;
+let calYear, calMonth, notifOpen=false, reqDdOpen=false, reqSelDogs=new Set(), reqShowArchived=false;
 
 /* ═══════════════════════════════════════
    SYNC STATE UI
@@ -1048,7 +1066,7 @@ function goPage(id) {
   if(id==='calc') renderDD();
   if(id==='dashboard') renderDashboard();
   if(id==='calendar'){ renderCalendar(); renderUpcoming(); if(calViewMode==='list') renderCalList(); }
-  if(id==='requests') renderRequests();
+  if(id==='requests'){ renderReqDD(); renderRequests(); }
   if(id==='finance'){ if(!document.getElementById('fin-from').value) finPreset('3m'); else renderFinance(); }
 }
 function refreshActive(){
@@ -1337,8 +1355,26 @@ async function deleteDog(id) {
 function renderDogList() {
   renderVaccStatus();
   const c=document.getElementById('dog-list-wrap');
-  if(!dogs.length) { c.innerHTML='<div class="es"><span class="ei">🐕</span><p>No dogs added yet.</p></div>'; return; }
-  c.innerHTML='<div class="dog-list">'+dogs.map(d=>{
+  if(!dogs.length) { c.innerHTML='<div class="es"><span class="ei">🐕</span><p>No dogs added yet.</p></div>'; document.getElementById('dog-count').textContent=''; return; }
+  const q=(document.getElementById('dog-search')?.value||'').toLowerCase().trim();
+  const filtered=dogs.filter(d=>!q||(d.dog_name||'').toLowerCase().includes(q)||(d.owner_name||'').toLowerCase().includes(q)||(d.breed||'').toLowerCase().includes(q));
+  const cntEl=document.getElementById('dog-count');
+  cntEl.textContent=q?filtered.length+' of '+dogs.length+' dogs':dogs.length+' dog'+(dogs.length!==1?'s':'');
+  if(!filtered.length){ c.innerHTML='<div class="es"><span class="ei">🔍</span><p>No dogs match "'+esc(q)+'"</p></div>'; return; }
+  const sorted=[...filtered].sort((a,b)=>(a.dog_name||'').localeCompare(b.dog_name||''));
+  if(dogViewMode==='list'){
+    c.innerHTML='<div style="display:flex;flex-direction:column;gap:1px;border:1px solid var(--cream-dark);border-radius:var(--r3);overflow:hidden">'+sorted.map(d=>{
+      const flags=visitNotes.filter(n=>n.dog_id===d.id&&n.flagged).length;
+      const anyExp=[d.vacc_rabies,d.vacc_dhpp,d.vacc_bordetella].some(v=>v&&new Date(v)<new Date());
+      return `<div onclick="openDogHistory('${d.id}')" style="display:flex;align-items:center;gap:11px;padding:10px 13px;border-bottom:1px solid var(--cream-mid);cursor:pointer;background:var(--white)">
+        <div class="da" style="width:38px;height:38px;font-size:16px">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--ink)">${esc(d.dog_name)}${anyExp?' <span style="font-size:10px;color:var(--danger)">💉 vacc due</span>':''}${flags?' <span style="font-size:10px;color:var(--coral)">⚠️ '+flags+'</span>':''}</div><div style="font-size:12px;color:var(--ink-faint)">${esc(d.owner_name)}${d.breed?' · '+esc(d.breed):''}</div></div>
+        <button class="btn btn-o sm" onclick="event.stopPropagation();openDogProfile('${d.id}')">Edit</button>
+      </div>`;
+    }).join('')+'</div>';
+    return;
+  }
+  c.innerHTML='<div class="dog-list">'+sorted.map(d=>{
     const rv=vaccStatus(d.vacc_rabies), dv=vaccStatus(d.vacc_dhpp), bv=vaccStatus(d.vacc_bordetella);
     return `
     <div class="di">
@@ -1374,6 +1410,8 @@ function renderDogList() {
     </div>`;
   }).join('')+'</div>';
 }
+let dogViewMode='card';
+function setDogView(m){ dogViewMode=m; document.getElementById('dogview-card').classList.toggle('active',m==='card'); document.getElementById('dogview-list').classList.toggle('active',m==='list'); renderDogList(); }
 
 /* ═══════════════════════════════════════
    BREED SEARCH
@@ -1784,23 +1822,30 @@ function renderReqDD(){
   const btn=document.getElementById('req-dd-btn');
   if(!btn) return;
   if(!dogs.length){ btn.querySelector('span').textContent='No dogs yet'; return; }
-  renderReqDDList();
+  renderReqDDList(); renderReqSel();
 }
 function renderReqDDList(){
   const list=document.getElementById('req-dd-list'); if(!list) return;
   const q=(document.getElementById('req-dd-search')?.value||'').toLowerCase().trim();
   const filtered=dogs.filter(d=>!q||(d.dog_name||'').toLowerCase().includes(q)||(d.owner_name||'').toLowerCase().includes(q));
   if(!filtered.length){ list.innerHTML='<div style="padding:14px;text-align:center;font-size:13px;color:var(--ink-faint)">No dogs match "'+esc(q)+'"</div>'; return; }
-  list.innerHTML=filtered.map(d=>`<div class="dd-item${reqSelDog===d.id?' sel':''}" onclick="selectReqDog('${d.id}')"><div class="dd-ava">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div><div style="flex:1;min-width:0"><div class="dd-name">${esc(d.dog_name)}</div><div class="dd-sub">${esc(d.owner_name)}</div></div><div class="dd-chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>`).join('');
+  list.innerHTML=filtered.map(d=>`<div class="dd-item${reqSelDogs.has(d.id)?' sel':''}" onclick="toggleReqDog('${d.id}')"><div class="dd-ava">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</div><div style="flex:1;min-width:0"><div class="dd-name">${esc(d.dog_name)}</div><div class="dd-sub">${esc(d.owner_name)}</div></div><div class="dd-chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div></div>`).join('');
 }
 function toggleReqDD(){ reqDdOpen=!reqDdOpen; document.getElementById('req-dd-menu').style.display=reqDdOpen?'block':'none'; document.getElementById('req-dd-btn').classList.toggle('open',reqDdOpen); if(reqDdOpen){ const s=document.getElementById('req-dd-search'); if(s){ s.value=''; renderReqDDList(); setTimeout(()=>s.focus(),50); } } }
 function closeReqDD(){ reqDdOpen=false; const m=document.getElementById('req-dd-menu'); if(m) m.style.display='none'; const b=document.getElementById('req-dd-btn'); if(b) b.classList.remove('open'); }
-function selectReqDog(id){
-  reqSelDog=id; const d=dogs.find(x=>x.id===id), lbl=document.getElementById('req-dd-lbl');
-  lbl.textContent=d?d.dog_name:'Select dog…'; lbl.style.color=d?'var(--ink)':'var(--ink-faint)';
-  renderReqDD(); closeReqDD();
+function toggleReqDog(id){
+  if(reqSelDogs.has(id)) reqSelDogs.delete(id); else reqSelDogs.add(id);
+  renderReqDDList(); renderReqSel();
+}
+function renderReqSel(){
+  const cnt=reqSelDogs.size, lbl=document.getElementById('req-dd-lbl');
+  lbl.textContent=cnt?cnt+' dog'+(cnt>1?'s':'')+' selected':'Select dog(s)…';
+  lbl.style.color=cnt?'var(--ink)':'var(--ink-faint)';
+  const tags=document.getElementById('req-sel-tags');
+  tags.innerHTML=[...reqSelDogs].map(id=>{const d=dogs.find(x=>x.id===id);if(!d)return'';return `<span class="sel-tag"><span class="sel-tag-ava">${d.photo?`<img src="${d.photo}" alt="">`:'🐶'}</span>${esc(d.dog_name)}<span class="sel-tag-x" onclick="toggleReqDog('${d.id}')">×</span></span>`;}).join('');
+  // recall card: show for the selected dogs (each)
   const rc=document.getElementById('req-recall');
-  if(d){ rc.innerHTML=recallCard(id); rc.style.display=''; } else { rc.style.display='none'; }
+  if(cnt){ rc.innerHTML=[...reqSelDogs].map(id=>recallCard(id)).join('<div style="height:8px"></div>'); rc.style.display=''; } else rc.style.display='none';
 }
 /* "Things to know" recall card — surfaces traits + flagged + recent notes */
 function recallCard(dogId){
@@ -1810,7 +1855,7 @@ function recallCard(dogId){
   const recent=notes.slice(0,3);
   const t=d.traits||{};
   const hasTraits=t.temperament||t.social||t.energy||t.play||t.eating||t.handling;
-  if(!hasTraits && !notes.length) return `<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:11px 13px;font-size:12px;color:var(--ink-faint)">🆕 First-time guest — no history on file yet.</div>`;
+  if(!hasTraits && !notes.length) return `<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:11px 13px;font-size:12px;color:var(--ink-faint)">🆕 ${esc(d.dog_name)} — first-time guest, no history yet.</div>`;
   const fd=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   let html=`<div style="background:var(--coral-pale);border:1px solid #F0C9BE;border-radius:var(--radius-md);padding:12px 14px">
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--coral);margin-bottom:8px">💡 Things to know about ${esc(d.dog_name)}</div>`;
@@ -1824,25 +1869,31 @@ function recallCard(dogId){
 }
 document.addEventListener('click', e=>{ if(!e.target.closest('#req-dd-btn')&&!e.target.closest('#req-dd-menu')) closeReqDD(); if(!e.target.closest('.breed-wrap')){ ['breed-dd','e-breed-dd'].forEach(id=>{ const bd=document.getElementById(id); if(bd) bd.style.display='none'; }); } });
 async function addRequest(){
-  if(!reqSelDog){ toast('Please select a dog.', true); return; }
+  if(!reqSelDogs.size){ toast('Please select at least one dog.', true); return; }
   const ci=document.getElementById('req-ci').value, cit=document.getElementById('req-ci-t').value;
   const co=document.getElementById('req-co').value, cot=document.getElementById('req-co-t').value;
   if(!ci||!co){ toast('Please set check-in and check-out dates.', true); return; }
-  const dog=dogs.find(d=>d.id===reqSelDog);
-  const rec={ id:Date.now().toString(), dog_id:reqSelDog, dog_name:dog?dog.dog_name:'', owner_name:dog?dog.owner_name:'', service:document.getElementById('req-svc').value, checkin:ci+'T'+cit, checkout:co+'T'+cot, notes:document.getElementById('req-notes').value.trim(), status:'pending', created_at:new Date().toISOString() };
+  const selDogList=[...reqSelDogs].map(id=>dogs.find(d=>d.id===id)).filter(Boolean);
+  const rec={ id:Date.now().toString(), dog_id:selDogList[0].id, dog_name:selDogList.map(d=>d.dog_name).join(', '), owner_name:selDogList[0].owner_name, dog_ids:selDogList.map(d=>d.id), service:document.getElementById('req-svc').value, checkin:ci+'T'+cit, checkout:co+'T'+cot, notes:document.getElementById('req-notes').value.trim(), status:'pending', created_at:new Date().toISOString() };
   setSyncState('busy');
-  try{ await dbAddReq(rec); requests.unshift(rec); setSyncState('ok'); document.getElementById('req-notes').value=''; reqSelDog=null; document.getElementById('req-dd-lbl').textContent='Select dog…'; document.getElementById('req-dd-lbl').style.color='var(--ink-faint)'; document.getElementById('req-recall').style.display='none'; renderRequests(); updateBadges(); refreshActive(); toast('Request added!'); }
+  try{ await dbAddReq(rec); requests.unshift(rec); setSyncState('ok'); document.getElementById('req-notes').value=''; reqSelDogs=new Set(); renderReqSel(); renderRequests(); updateBadges(); refreshActive(); toast('Reservation added!'); }
   catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
 }
+function setReqView(arch){ reqShowArchived=arch; renderRequests(); }
 function renderRequests(){
   const c=document.getElementById('req-list');
-  if(!requests.length){ c.innerHTML='<div class="es"><span class="ei">📩</span><p>No reservations yet.</p></div>'; return; }
+  const active=requests.filter(r=>r.status!=='completed'&&r.status!=='declined');
+  const archived=requests.filter(r=>r.status==='completed'||r.status==='declined');
+  const list=reqShowArchived?archived:active;
+  // toggle header
+  const toggle=`<div style="display:flex;gap:0;margin-bottom:12px;background:var(--cream-mid);border:1.5px solid var(--cream-dark);border-radius:var(--r3);padding:4px;width:fit-content"><button class="svc-btn${!reqShowArchived?' active':''}" onclick="setReqView(false)" style="flex:none;padding:7px 16px">Active (${active.length})</button><button class="svc-btn${reqShowArchived?' active':''}" onclick="setReqView(true)" style="flex:none;padding:7px 16px">Completed (${archived.length})</button></div>`;
+  if(!list.length){ c.innerHTML=toggle+'<div class="es"><span class="ei">📩</span><p>'+(reqShowArchived?'No completed reservations yet.':'No active reservations. New requests appear here.')+'</p></div>'; return; }
   const fd=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   const ft=s=>new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   // Status display label map
   const statusLabel={pending:'Pending',confirmed:'Confirmed',checked_in:'Checked In',completed:'Completed',declined:'Declined'};
   const statusClass={pending:'pending',confirmed:'confirmed',checked_in:'confirmed',completed:'confirmed',declined:'declined'};
-  c.innerHTML=requests.map(r=>{
+  c.innerHTML=toggle+list.map(r=>{
     const st=r.status||'pending';
     const lbl=statusLabel[st]||st;
     const cls=statusClass[st]||'pending';
@@ -1911,7 +1962,7 @@ function openCheckIn(id){
   document.getElementById('cio-date').value=dStr(new Date(r.checkin));
   document.getElementById('cio-time').value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   document.getElementById('cio-hint').textContent='Record the actual arrival date and time. Check-out and final billing happen when the dog leaves.';
-  const rc=document.getElementById('cio-recall'); if(r.dog_id){ rc.innerHTML=recallCard(r.dog_id); rc.style.display=''; } else rc.style.display='none';
+  const rc=document.getElementById('cio-recall'); const cioIds=reqDogIds(r); if(cioIds.length){ rc.innerHTML=cioIds.map(id=>recallCard(id)).join('<div style="height:8px"></div>'); rc.style.display=''; } else rc.style.display='none';
   document.getElementById('cio-preview').style.display='none';
   document.getElementById('cio-save-lbl').textContent='Confirm Check-In';
   document.getElementById('cio-mo').classList.add('on');
@@ -1946,25 +1997,26 @@ function cioGetCheckinDate(){
   const r=requests.find(x=>x.id===cioReqId);
   return r?new Date(r.actual_checkin||r.checkin):new Date();
 }
+function reqDogIds(r){ return (r.dog_ids&&r.dog_ids.length)?r.dog_ids:(r.dog_id?[r.dog_id]:[]); }
 function cioUpdatePreview(){
   const prev=document.getElementById('cio-preview');
   if(cioMode!=='out'){ prev.style.display='none'; return; }
   const r=requests.find(x=>x.id===cioReqId); if(!r) return;
-  const dog=dogs.find(d=>d.id===r.dog_id);
   const inDt=cioGetCheckinDate();
   const d=document.getElementById('cio-date').value, t=document.getElementById('cio-time').value;
   if(!d||!t||isNaN(inDt)){ prev.style.display='none'; return; }
   const outDt=new Date(d+'T'+t);
-  if(isNaN(outDt)||outDt<=inDt){ prev.style.display='block'; prev.innerHTML='<span style="color:var(--danger)">⚠️ Check-out must be after check-in ('+(isNaN(inDt)?'—':inDt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))+').</span>'; return; }
-  const res=calcDogSvc(dog,inDt,outDt,r.service);
-  const disc=applyDiscount(res.total);
+  if(isNaN(outDt)||outDt<=inDt){ prev.style.display='block'; prev.innerHTML='<span style="color:var(--danger)">Check-out must be after check-in.</span>'; return; }
+  const ids=reqDogIds(r);
+  const results=ids.map(id=>{ const dg=dogs.find(x=>x.id===id); return {dog:dg,...calcDogSvc(dg,inDt,outDt,r.service)}; });
+  const subtotal=results.reduce((s,x)=>s+x.total,0);
+  const disc=applyDiscount(subtotal);
   prev.style.display='block';
-  prev.innerHTML=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin-bottom:6px">Final Price Preview</div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-mid);margin-bottom:3px"><span>Actual stay</span><span>${inDt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} → ${outDt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-mid);margin-bottom:3px"><span>${r.service==='boarding'?'Boarding':'Day Care'} · $${res.rate.toFixed(2)}/day</span><span>${res.fullDays}d${res.extraHrs>0?' + '+res.extraHrs+'h':''}</span></div>
-    ${res.surcharge>0?`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gold);margin-bottom:3px"><span>Late checkout surcharge</span><span>+$${res.surcharge.toFixed(2)}</span></div>`:''}
-    ${disc.discount>0?`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--coral);margin-bottom:3px"><span>Discount${disc.type==='pct'?' ('+disc.val+'%)':''}</span><span>−$${disc.discount.toFixed(2)}</span></div>`:''}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--cream-dark)"><span style="font-size:13px;font-weight:600">Total Due</span><span style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink)">$${disc.total.toFixed(2)}</span></div>`;
+  let rows=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin-bottom:6px">Final Price Preview</div><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-mid);margin-bottom:3px"><span>Actual stay</span><span>${inDt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} &rarr; ${outDt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`;
+  results.forEach(x=>{ rows+=`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-mid);margin-bottom:3px"><span>${esc(x.dog?x.dog.dog_name:'Dog')} &middot; ${x.fullDays}d${x.extraHrs>0?' + '+x.extraHrs+'h':''}${x.surcharge>0?' (+$'+x.surcharge.toFixed(2)+')':''}</span><span>$${x.total.toFixed(2)}</span></div>`; });
+  if(disc.discount>0) rows+=`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--coral);margin-bottom:3px"><span>Discount${disc.type==='pct'?' ('+disc.val+'%)':''}</span><span>&minus;$${disc.discount.toFixed(2)}</span></div>`;
+  rows+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--cream-dark)"><span style="font-size:13px;font-weight:600">Total Due</span><span style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink)">$${disc.total.toFixed(2)}</span></div>`;
+  prev.innerHTML=rows;
 }
 function closeCio(){ document.getElementById('cio-mo').classList.remove('on'); cioReqId=null; cioMode=null; }
 async function saveCio(){
@@ -1983,11 +2035,13 @@ async function saveCio(){
       const inDt=cioGetCheckinDate();
       if(isNaN(inDt)){ setSyncState('ok'); toast('Please set a valid check-in time.', true); return; }
       if(stamp<=inDt){ setSyncState('ok'); toast('Check-out must be after check-in.', true); return; }
-      const dog=dogs.find(x=>x.id===r.dog_id);
-      const res=calcDogSvc(dog,inDt,stamp,r.service);
-      const disc=applyDiscount(res.total);
-      const entry={dogId:r.dog_id,dogName:r.dog_name,ownerName:r.owner_name,phone:dog?dog.phone:'',photo:dog?dog.photo:null,notes:dog?dog.notes:'',rate:res.rate,fullDays:res.fullDays,extraHrs:res.extraHrs,surcharge:res.surcharge,total:res.total,requested_checkin:r.checkin,requested_checkout:r.checkout,subtotal:res.total,discount:disc.discount,discount_type:disc.type,discount_val:disc.val};
-      const booking={ id:Date.now().toString(), saved_at:new Date().toISOString(), service:r.service, checkin:inDt.toISOString(), checkout:stamp.toISOString(), grand_total:disc.total, entries:[entry] };
+      const ids=reqDogIds(r);
+      const results=ids.map(id=>{ const dg=dogs.find(x=>x.id===id); return {dog:dg,...calcDogSvc(dg,inDt,stamp,r.service)}; });
+      const subtotal=results.reduce((s,x)=>s+x.total,0);
+      const disc=applyDiscount(subtotal);
+      const entries=results.map(x=>{ const share=subtotal>0?x.total/subtotal:0; const dDisc=+(disc.discount*share).toFixed(2); return {dogId:x.dog?x.dog.id:null,dogName:x.dog?x.dog.dog_name:'',ownerName:x.dog?x.dog.owner_name:r.owner_name,phone:x.dog?x.dog.phone:'',photo:x.dog?x.dog.photo:null,notes:x.dog?x.dog.notes:'',rate:x.rate,fullDays:x.fullDays,extraHrs:x.extraHrs,surcharge:x.surcharge,total:x.total,subtotal:x.total,discount:dDisc}; });
+      if(entries[0]){ entries[0].requested_checkin=r.checkin; entries[0].requested_checkout=r.checkout; entries[0].discount_type=disc.type; entries[0].discount_val=disc.val; }
+      const booking={ id:Date.now().toString(), saved_at:new Date().toISOString(), service:r.service, checkin:inDt.toISOString(), checkout:stamp.toISOString(), grand_total:disc.total, requested_checkin:r.checkin, requested_checkout:r.checkout, entries:entries };
       try {
         await dbInsertBooking(booking);
       } catch(insErr) {
@@ -2181,6 +2235,66 @@ async function clearHistory() {
   catch(e){ setSyncState('err'); toast('Error: '+e.message,true); }
 }
 
+/* ── Export / Import past bookings (Excel) ── */
+async function exportBookings(){
+  if(!bookings.length){ toast('No bookings to export.', true); return; }
+  try{
+    const XLSX=await getXLSX();
+    const rows=[['Date','Dog(s)','Owner','Service','Check-In','Check-Out','Amount','Paid','Method']];
+    bookings.forEach(b=>{
+      rows.push([
+        new Date(b.checkout||b.saved_at).toLocaleDateString('en-US'),
+        (b.entries||[]).map(e=>e.dogName||'').join(', '),
+        (b.entries||[])[0]?.ownerName||'',
+        b.service==='boarding'?'Boarding':'Day Care',
+        new Date(b.checkin).toLocaleString('en-US'),
+        new Date(b.checkout).toLocaleString('en-US'),
+        parseFloat(b.grand_total||0),
+        b.paid?'Yes':'No',
+        b.payment_method||''
+      ]);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:12},{wch:20},{wch:18},{wch:11},{wch:20},{wch:20},{wch:10},{wch:7},{wch:12}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Bookings');
+    XLSX.writeFile(wb,'shvaan-bookings-'+new Date().toISOString().slice(0,10)+'.xlsx');
+    toast('Exported '+bookings.length+' booking'+(bookings.length!==1?'s':'')+'.');
+  }catch(e){ toast('Export failed: '+e.message, true); }
+}
+async function importBookings(input){
+  const file=input.files[0]; if(!file) return;
+  const re=document.getElementById('bk-import-result'); re.style.display='none';
+  try{
+    const XLSX=await getXLSX();
+    const buf=await file.arrayBuffer(), wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]], rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(rows.length<2) throw new Error('Spreadsheet appears empty.');
+    const hdrs=rows[0].map(h=>String(h).toLowerCase().trim());
+    const col=names=>{for(const n of names){const i=hdrs.indexOf(n);if(i!==-1)return i;}return -1;};
+    const dgc=col(['dog(s)','dog','dogs','dog name']), oc=col(['owner','owner name']), sc=col(['service']), cic=col(['check-in','checkin','check in']), coc=col(['check-out','checkout','check out']), amc=col(['amount','total','grand total']), pc=col(['paid']), mc=col(['method','payment method']);
+    if(dgc===-1||cic===-1||coc===-1||amc===-1) throw new Error('Need at least Dog(s), Check-In, Check-Out, and Amount columns.');
+    const toAdd=[];
+    rows.slice(1).forEach(r=>{
+      const dn=String(r[dgc]||'').trim(); if(!dn) return;
+      const ci=new Date(r[cic]), co=new Date(r[coc]);
+      if(isNaN(ci)||isNaN(co)) return;
+      const amt=parseFloat(String(r[amc]).replace(/[^0-9.]/g,''))||0;
+      const svc=String(r[sc]||'boarding').toLowerCase().includes('day')?'daycare':'boarding';
+      const paid=['yes','true','1','paid','y'].includes(String(r[pc]||'').toLowerCase().trim());
+      toAdd.push({ id:Date.now().toString()+Math.random().toString(36).slice(2), saved_at:co.toISOString(), service:svc, checkin:ci.toISOString(), checkout:co.toISOString(), grand_total:amt, paid:paid, payment_method:mc!==-1?String(r[mc]||'').trim()||null:null, imported:true,
+        entries:[{dogName:dn, ownerName:oc!==-1?String(r[oc]||'').trim():'', rate:0, fullDays:0, extraHrs:0, surcharge:0, total:amt}] });
+    });
+    if(!toAdd.length) throw new Error('No valid rows found.');
+    setSyncState('busy');
+    for(const b of toAdd){ await dbInsertBooking(b); bookings.unshift(b); }
+    setSyncState('ok');
+    renderHistory(); updateBadges();
+    re.style.display='block'; re.style.color='var(--forest)';
+    re.innerHTML='✅ Imported <strong>'+toAdd.length+'</strong> past booking'+(toAdd.length!==1?'s':'')+'.';
+    toast('Imported '+toAdd.length+' booking'+(toAdd.length!==1?'s':'')+'.');
+  }catch(e){ const re2=document.getElementById('bk-import-result'); re2.style.display='block'; re2.style.color='var(--danger)'; re2.textContent='⚠️ '+e.message; setSyncState('ok'); }
+  input.value='';
+}
+
 /* ═══════════════════════════════════════
    DASHBOARD
 ═══════════════════════════════════════ */
@@ -2212,7 +2326,7 @@ function renderDashboard(){
 
   // Attention banner
   const overdue=onSite.filter(r=>new Date(r.checkout)<now);
-  const noVacc=onSite.filter(r=>{ const d=dogs.find(x=>x.id===r.dog_id); if(!d)return false; const exp=v=>v&&new Date(v)<now; return exp(d.vacc_rabies)||exp(d.vacc_dhpp)||exp(d.vacc_bordetella); });
+  const noVacc=onSite.filter(r=>{ const exp=v=>v&&new Date(v)<now; return reqDogIds(r).some(id=>{ const d=dogs.find(x=>x.id===id); return d&&(exp(d.vacc_rabies)||exp(d.vacc_dhpp)||exp(d.vacc_bordetella)); }); });
   const att=[];
   if(overdue.length) att.push(`${overdue.length} overdue checkout${overdue.length!==1?'s':''}`);
   if(pending) att.push(`${pending} pending request${pending!==1?'s':''}`);
