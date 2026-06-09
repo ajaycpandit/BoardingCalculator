@@ -533,6 +533,7 @@ table.bt tr:last-child td{border-bottom:none}
             <div class="fd"><label>Check-Out Date</label><input type="date" id="req-co"></div>
             <div class="fd"><label>Check-Out Time</label><input type="time" id="req-co-t" value="10:00"></div>
           </div>
+          <div id="req-recall" style="display:none;margin-bottom:13px"></div>
           <div class="fd" style="margin-bottom:13px"><label>Notes</label><textarea id="req-notes" style="height:52px" placeholder="Special instructions…"></textarea></div>
           <button class="btn btn-b" onclick="addRequest()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Add Request</button>
         </div>
@@ -565,6 +566,17 @@ table.bt tr:last-child td{border-bottom:none}
                 <div class="breed-wrap"><input type="text" id="nd-breed" placeholder="Type to search breed…" autocomplete="off" oninput="filterBreeds(this)" onkeydown="breedKey(event)"><div class="breed-dd" id="breed-dd"></div></div>
               </div>
               <div class="fd" style="margin-bottom:12px"><label>Notes / Special Care</label><textarea id="nd-notes" style="height:52px" placeholder="e.g. Meds at 6pm, friendly with other dogs"></textarea></div>
+              <div style="border-top:1px solid var(--cream-dark);padding-top:13px;margin-bottom:12px">
+                <div style="font-size:11px;font-weight:600;color:var(--ink-mid);letter-spacing:.03em;margin-bottom:10px">🐾 Behavior & Habits</div>
+                <div class="g2" style="margin-bottom:10px">
+                  <div class="fd"><label>Temperament</label><select id="nd-t-temp"><option value="">—</option><option>Calm</option><option>Friendly</option><option>Shy</option><option>Anxious</option><option>Reactive</option></select></div>
+                  <div class="fd"><label>Gets Along w/ Other Dogs</label><select id="nd-t-social"><option value="">—</option><option>Yes</option><option>Selective</option><option>No</option><option>Unknown</option></select></div>
+                  <div class="fd"><label>Energy Level</label><select id="nd-t-energy"><option value="">—</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+                  <div class="fd"><label>Playfulness</label><select id="nd-t-play"><option value="">—</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+                  <div class="fd"><label>Eating Habits</label><select id="nd-t-eat"><option value="">—</option><option>Good eater</option><option>Picky</option><option>Needs encouragement</option><option>Special diet</option></select></div>
+                </div>
+                <div class="fd"><label>Handling Notes</label><textarea id="nd-t-handling" style="height:46px" placeholder="e.g. Food-motivated, hates thunder, needs slow intro to new dogs"></textarea></div>
+              </div>
               <div style="border-top:1px solid var(--cream-dark);padding-top:13px;margin-bottom:12px">
                 <div style="font-size:11px;font-weight:600;color:var(--ink-mid);letter-spacing:.03em;margin-bottom:10px">💉 Vaccination Records</div>
                 <div class="g2" style="margin-bottom:11px">
@@ -728,6 +740,17 @@ table.bt tr:last-child td{border-bottom:none}
       </div>
       <div class="fd" style="margin-bottom:12px"><label>Notes / Special Care</label><textarea id="e-notes" style="height:52px"></textarea></div>
       <div style="border-top:1px solid var(--cream-dark);padding-top:13px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:var(--ink-mid);letter-spacing:.03em;margin-bottom:10px">🐾 Behavior & Habits</div>
+        <div class="g2" style="margin-bottom:10px">
+          <div class="fd"><label>Temperament</label><select id="e-t-temp"><option value="">—</option><option>Calm</option><option>Friendly</option><option>Shy</option><option>Anxious</option><option>Reactive</option></select></div>
+          <div class="fd"><label>Gets Along w/ Other Dogs</label><select id="e-t-social"><option value="">—</option><option>Yes</option><option>Selective</option><option>No</option><option>Unknown</option></select></div>
+          <div class="fd"><label>Energy Level</label><select id="e-t-energy"><option value="">—</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+          <div class="fd"><label>Playfulness</label><select id="e-t-play"><option value="">—</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+          <div class="fd"><label>Eating Habits</label><select id="e-t-eat"><option value="">—</option><option>Good eater</option><option>Picky</option><option>Needs encouragement</option><option>Special diet</option></select></div>
+        </div>
+        <div class="fd"><label>Handling Notes</label><textarea id="e-t-handling" style="height:46px"></textarea></div>
+      </div>
+      <div style="border-top:1px solid var(--cream-dark);padding-top:13px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:600;color:var(--ink-mid);letter-spacing:.03em;margin-bottom:10px">💉 Vaccination Records</div>
         <div class="g2" style="margin-bottom:11px">
           <div class="fd"><label>Rabies Expiry</label><input type="date" id="e-v-rabies"></div>
@@ -751,6 +774,7 @@ table.bt tr:last-child td{border-bottom:none}
 <div class="mo" id="cio-mo"><div class="mo-inner"><div class="mo-head"><h3 id="cio-title">Check In</h3><button class="btn btn-o sm" onclick="closeCio()">Close</button></div>
 <div class="mo-body">
   <p id="cio-hint" style="font-size:12px;color:var(--ink-light);margin-bottom:14px;line-height:1.5"></p>
+  <div id="cio-recall" style="display:none;margin-bottom:14px"></div>
   <div id="cio-in-block" style="display:none;margin-bottom:14px">
     <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin-bottom:8px">Actual Check-In</div>
     <div class="g2">
@@ -873,6 +897,10 @@ async function dbGetDogs()    { return await sbFetch('dogs?order=created_at.asc'
 async function dbInsertDog(d) { return await sbFetch('dogs', 'POST', d); }
 async function dbUpdateDog(id,d){ return await sbFetch('dogs?id=eq.'+encodeURIComponent(id), 'PATCH', d); }
 async function dbDeleteDog(id){ return await sbFetch('dogs?id=eq.'+encodeURIComponent(id), 'DELETE'); }
+async function dbGetNotes(){ return await sbFetch('visit_notes?order=created_at.desc').catch(()=>[]) || []; }
+async function dbAddNote(n){ return await sbFetch('visit_notes','POST',n).catch(e=>{throw e;}); }
+async function dbUpdNote(id,d){ return await sbFetch('visit_notes?id=eq.'+encodeURIComponent(id),'PATCH',d).catch(()=>null); }
+async function dbDelNote(id){ return await sbFetch('visit_notes?id=eq.'+encodeURIComponent(id),'DELETE').catch(()=>null); }
 async function dbUpsertDogs(arr){ return await sbFetch('dogs', 'POST', arr); } // used by import
 
 /* BOOKINGS */
@@ -919,7 +947,8 @@ const DEF = { boardingRate:55, daycareRate:35, threshold:3, surchargePct:50, biz
 const DEFAULT_LOGO = 'data:image/png;base64,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';
 function currentLogo(){ return (settings && settings.logo) ? settings.logo : DEFAULT_LOGO; }
 function applyLogo(){ const l=currentLogo(); ['logo-loading','logo-sidebar','logo-mobile'].forEach(id=>{ const el=document.getElementById(id); if(el) el.src=l; }); document.querySelectorAll('.logo-invoice').forEach(el=>el.src=l); }
-let dogs=[], bookings=[], requests=[], settings={...DEF};
+let dogs=[], bookings=[], requests=[], visitNotes=[], settings={...DEF};
+let staffName=localStorage.getItem('shvaan_staff')||'';
 let selDogs=new Set(), svc='boarding', pendingPhoto=null, pendingVaccFile=null, ddOpen=false, invBid=null;
 let calYear, calMonth, notifOpen=false, reqDdOpen=false, reqSelDog=null;
 
@@ -943,6 +972,7 @@ async function init() {
   try {
     [dogs, bookings] = await Promise.all([dbGetDogs(), dbGetBookings()]);
     requests = await dbGetReqs();
+    visitNotes = await dbGetNotes();
     const s = await dbGetSettings();
     if (s) settings = {...DEF, ...s};
     setLoadStatus('Ready!');
@@ -1195,14 +1225,15 @@ async function addDog() {
   const breed=document.getElementById('nd-breed').value.trim();
   const notes=document.getElementById('nd-notes').value.trim();
   const vR=document.getElementById('nd-v-rabies').value, vD=document.getElementById('nd-v-dhpp').value, vB=document.getElementById('nd-v-bord').value;
-  const rec = { id:Date.now().toString(), dog_name:name, owner_name:owner, phone:phone||null, owner_email:email||null, rate_override:rate?parseFloat(rate):null, breed:breed||null, notes:notes||null, photo:pendingPhoto||null, vacc_rabies:vR||null, vacc_dhpp:vD||null, vacc_bordetella:vB||null, vacc_file_url:null };
+  const traits={ temperament:document.getElementById('nd-t-temp').value, social:document.getElementById('nd-t-social').value, energy:document.getElementById('nd-t-energy').value, play:document.getElementById('nd-t-play').value, eating:document.getElementById('nd-t-eat').value, handling:document.getElementById('nd-t-handling').value.trim() };
+  const rec = { id:Date.now().toString(), dog_name:name, owner_name:owner, phone:phone||null, owner_email:email||null, rate_override:rate?parseFloat(rate):null, breed:breed||null, notes:notes||null, photo:pendingPhoto||null, vacc_rabies:vR||null, vacc_dhpp:vD||null, vacc_bordetella:vB||null, vacc_file_url:null, traits:traits };
   setSyncState('busy');
   try {
     if(pendingVaccFile){ try{ rec.vacc_file_url = await uploadVaccFile(rec.id, pendingVaccFile); }catch(fe){ console.warn('Vacc upload failed', fe); toast('Dog saved, but vaccine file upload failed (check storage bucket).', true); } }
     await dbInsertDog(rec);
     dogs.push(rec);
     setSyncState('ok');
-    ['nd-name','nd-owner','nd-phone','nd-email','nd-rate','nd-breed','nd-notes','nd-v-rabies','nd-v-dhpp','nd-v-bord'].forEach(id=>document.getElementById(id).value='');
+    ['nd-name','nd-owner','nd-phone','nd-email','nd-rate','nd-breed','nd-notes','nd-v-rabies','nd-v-dhpp','nd-v-bord','nd-t-temp','nd-t-social','nd-t-energy','nd-t-play','nd-t-eat','nd-t-handling'].forEach(id=>document.getElementById(id).value='');
     pendingPhoto=null; pendingVaccFile=null;
     document.getElementById('ppw').innerHTML='<div class="upl">🐶</div><p>Add photo</p>';
     const vb=document.getElementById('vacc-box'); vb.classList.remove('has-file');
@@ -1300,6 +1331,7 @@ function renderDogList() {
           <span class="vbdg ${bv.cls}">💉 Bordetella: ${bv.label}</span>
           ${d.vacc_file_url?`<a href="${d.vacc_file_url}" target="_blank" class="vbdg ok" style="text-decoration:none;cursor:pointer">📎 View Records</a>`:''}
         </div>
+        ${traitChips(d)}
       </div>
       <div class="dia" style="flex-direction:column;gap:6px">
         <button class="btn btn-o sm" onclick="openDogProfile('${d.id}')" style="width:100%">
@@ -1360,6 +1392,13 @@ function openDogProfile(id){
   document.getElementById('e-v-rabies').value=d.vacc_rabies||'';
   document.getElementById('e-v-dhpp').value=d.vacc_dhpp||'';
   document.getElementById('e-v-bord').value=d.vacc_bordetella||'';
+  const tr=d.traits||{};
+  document.getElementById('e-t-temp').value=tr.temperament||'';
+  document.getElementById('e-t-social').value=tr.social||'';
+  document.getElementById('e-t-energy').value=tr.energy||'';
+  document.getElementById('e-t-play').value=tr.play||'';
+  document.getElementById('e-t-eat').value=tr.eating||'';
+  document.getElementById('e-t-handling').value=tr.handling||'';
   document.getElementById('e-ppw').innerHTML=d.photo?`<img src="${d.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 4px;border:2px solid var(--cream-dark)">`:'<div class="upl">🐶</div><p>Add photo</p>';
   const vb=document.getElementById('e-vacc-box'); vb.classList.toggle('has-file',!!d.vacc_file_url);
   document.getElementById('e-vacc-box-content').innerHTML=d.vacc_file_url?'<div style="font-size:18px;margin-bottom:3px">✅</div><div style="font-size:12px;font-weight:600;color:var(--forest)">Records on file</div><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">Click to replace</div>':'<div style="font-size:20px;margin-bottom:3px">📎</div><div style="font-size:12px;font-weight:600;color:var(--ink-mid)">Click to attach</div>';
@@ -1381,7 +1420,8 @@ async function saveEditDog(){
     notes:document.getElementById('e-notes').value.trim()||null,
     vacc_rabies:document.getElementById('e-v-rabies').value||null,
     vacc_dhpp:document.getElementById('e-v-dhpp').value||null,
-    vacc_bordetella:document.getElementById('e-v-bord').value||null
+    vacc_bordetella:document.getElementById('e-v-bord').value||null,
+    traits:{ temperament:document.getElementById('e-t-temp').value, social:document.getElementById('e-t-social').value, energy:document.getElementById('e-t-energy').value, play:document.getElementById('e-t-play').value, eating:document.getElementById('e-t-eat').value, handling:document.getElementById('e-t-handling').value.trim() }
   };
   if(editPendingPhoto) upd.photo=editPendingPhoto;
   setSyncState('busy');
@@ -1393,29 +1433,120 @@ async function saveEditDog(){
     closeEditMo(); renderDogList(); renderDD(); renderReqDD(); updateBadges(); toast('Profile updated!');
   }catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
 }
+let dogHistId=null;
 function openDogHistory(id){
   const d=dogs.find(x=>x.id===id); if(!d) return;
-  document.getElementById('doghist-title').textContent=d.dog_name+' — Reservations';
-  // find bookings containing this dog
-  const recs=bookings.filter(b=>(b.entries||[]).some(e=>e.dogId===id||e.dogName===d.dog_name));
-  const body=document.getElementById('doghist-body');
-  if(!recs.length){ body.innerHTML='<div class="es"><span class="ei">📋</span><p>No past reservations for '+esc(d.dog_name)+' yet.</p></div>'; document.getElementById('doghist-mo').classList.add('on'); return; }
-  const fd=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const ft=s=>new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  body.innerHTML=recs.map(b=>{
-    const ent=(b.entries||[]).find(e=>e.dogId===id||e.dogName===d.dog_name)||{};
-    return `<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div>${b.service==='boarding'?'<span class="sp sp-b">🏡 Boarding</span>':'<span class="sp sp-d">☀️ Day Care</span>'}</div>
-        <div style="font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink)">$${ent.total!=null?parseFloat(ent.total).toFixed(2):parseFloat(b.grand_total).toFixed(2)}</div>
-      </div>
-      <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;display:inline;vertical-align:-1px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> ${fd(b.checkin)} ${ft(b.checkin)} → ${fd(b.checkout)} ${ft(b.checkout)}</div>
-      <button class="btn btn-g sm" onclick="closeDogHistory();openInv('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>View Invoice</button>
-    </div>`;
-  }).join('');
+  dogHistId=id;
+  document.getElementById('doghist-title').textContent=d.dog_name;
+  renderDogHistBody();
   document.getElementById('doghist-mo').classList.add('on');
 }
-function closeDogHistory(){ document.getElementById('doghist-mo').classList.remove('on'); }
+function renderDogHistBody(){
+  const d=dogs.find(x=>x.id===dogHistId); if(!d) return;
+  const body=document.getElementById('doghist-body');
+  const fd=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const ft=s=>new Date(s).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  // Traits summary
+  let html=traitChips(d,true);
+  // Visit notes section
+  const notes=visitNotes.filter(n=>n.dog_id===d.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  html+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center"><span>📝 Visit Notes & Observations</span></div>';
+  // quick add
+  html+=`<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:11px;margin-bottom:12px">
+    <div style="display:flex;gap:7px;margin-bottom:7px;flex-wrap:wrap">
+      <select id="note-cat" style="flex:1;min-width:120px;height:38px;padding:0 10px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:13px;font-family:'DM Sans',sans-serif;background:var(--white);outline:none"><option>General</option><option>Feeding</option><option>Behavior</option><option>Health</option><option>Social</option></select>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-mid);white-space:nowrap;cursor:pointer"><input type="checkbox" id="note-flag" style="width:16px;height:16px;accent-color:var(--danger)">⚠️ Flag for next visit</label>
+    </div>
+    <textarea id="note-text" placeholder="What happened? e.g. Wouldn't eat first night; great with the small dogs in group play…" style="width:100%;height:54px;padding:9px 11px;border:1.5px solid var(--cream-dark);border-radius:var(--r2);font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;outline:none;background:var(--white);margin-bottom:7px"></textarea>
+    <button class="btn btn-p sm" onclick="addVisitNote()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Note</button>
+  </div>`;
+  if(notes.length){
+    // flagged first
+    const flagged=notes.filter(n=>n.flagged), rest=notes.filter(n=>!n.flagged);
+    html+=[...flagged,...rest].map(n=>noteRow(n)).join('');
+  } else {
+    html+='<div style="font-size:12px;color:var(--ink-faint);padding:4px 0 12px">No notes logged yet.</div>';
+  }
+  // Reservations
+  const recs=bookings.filter(b=>(b.entries||[]).some(e=>e.dogId===d.id||e.dogName===d.dog_name));
+  html+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);margin:16px 0 8px">📋 Past Reservations</div>';
+  if(recs.length){
+    html+=recs.map(b=>{
+      const ent=(b.entries||[]).find(e=>e.dogId===d.id||e.dogName===d.dog_name)||{};
+      return `<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:9px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px"><div>${b.service==='boarding'?'<span class="sp sp-b">🏡 Boarding</span>':'<span class="sp sp-d">☀️ Day Care</span>'}</div><div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink)">$${ent.total!=null?parseFloat(ent.total).toFixed(2):parseFloat(b.grand_total).toFixed(2)}</div></div>
+        <div style="font-size:12px;color:var(--ink-light);margin-bottom:7px">${fd(b.checkin)} ${ft(b.checkin)} → ${fd(b.checkout)} ${ft(b.checkout)}</div>
+        <button class="btn btn-g sm" onclick="closeDogHistory();openInv('${b.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>View Invoice</button>
+      </div>`;
+    }).join('');
+  } else { html+='<div style="font-size:12px;color:var(--ink-faint)">No past reservations yet.</div>'; }
+  body.innerHTML=html;
+}
+function noteRow(n){
+  const dt=new Date(n.created_at);
+  const catColor={Feeding:'var(--gold-pale)',Behavior:'#FCEEEA',Health:'var(--danger-pale)',Social:'#E6F2F0',General:'var(--cream-mid)'}[n.category]||'var(--cream-mid)';
+  return `<div style="border:1px solid ${n.flagged?'#EAB0AC':'var(--cream-dark)'};border-radius:var(--radius-md);padding:10px 12px;margin-bottom:7px;background:${n.flagged?'var(--danger-pale)':'var(--white)'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:3px">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:${catColor};color:var(--ink-mid)">${esc(n.category)}</span>${n.flagged?'<span style="font-size:10px;font-weight:600;color:var(--danger)">⚠️ Flagged</span>':''}</div>
+      <button onclick="delVisitNote('${n.id}')" style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:14px;line-height:1;flex-shrink:0">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--ink);line-height:1.45">${esc(n.note)}</div>
+    <div style="font-size:11px;color:var(--ink-faint);margin-top:4px">${dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${esc(n.staff||'Staff')}${n.flagged?` · <a onclick="toggleFlag('${n.id}')" style="cursor:pointer;color:var(--brown);text-decoration:underline">unflag</a>`:` · <a onclick="toggleFlag('${n.id}')" style="cursor:pointer;color:var(--brown);text-decoration:underline">flag</a>`}</div>
+  </div>`;
+}
+function getStaffName(){
+  if(staffName) return staffName;
+  const n=prompt('Your name (so notes show who logged them):','');
+  if(n&&n.trim()){ staffName=n.trim(); localStorage.setItem('shvaan_staff',staffName); }
+  return staffName||'Staff';
+}
+async function addVisitNote(){
+  const d=dogs.find(x=>x.id===dogHistId); if(!d) return;
+  const text=document.getElementById('note-text').value.trim();
+  if(!text){ toast('Please write a note first.', true); return; }
+  const staff=getStaffName();
+  const note={ id:Date.now().toString()+Math.random().toString(36).slice(2), dog_id:d.id, dog_name:d.dog_name, category:document.getElementById('note-cat').value, note:text, flagged:document.getElementById('note-flag').checked, staff:staff, created_at:new Date().toISOString() };
+  setSyncState('busy');
+  try{ await dbAddNote(note); visitNotes.unshift(note); setSyncState('ok'); renderDogHistBody(); renderDogList(); toast('Note added.'); }
+  catch(e){ setSyncState('err'); toast('Could not save note: '+e.message+' (did you create the visit_notes table?)', true); }
+}
+async function delVisitNote(id){
+  if(!confirm('Delete this note?')) return;
+  setSyncState('busy');
+  try{ await dbDelNote(id); visitNotes=visitNotes.filter(n=>n.id!==id); setSyncState('ok'); renderDogHistBody(); renderDogList(); toast('Note deleted.'); }
+  catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
+}
+async function toggleFlag(id){
+  const n=visitNotes.find(x=>x.id===id); if(!n) return;
+  n.flagged=!n.flagged;
+  setSyncState('busy');
+  try{ await dbUpdNote(id,{flagged:n.flagged}); setSyncState('ok'); renderDogHistBody(); }
+  catch(e){ setSyncState('err'); }
+}
+/* Trait chips: compact=false shows full row incl handling notes */
+function traitChips(d, full){
+  const t=d.traits||{};
+  const flagCount=visitNotes.filter(n=>n.dog_id===d.id&&n.flagged).length;
+  const map=[
+    ['temperament',{Calm:'🟢',Friendly:'🟢',Shy:'🟡',Anxious:'🟡',Reactive:'🔴'}],
+    ['social',{Yes:'🟢',Selective:'🟡',No:'🔴',Unknown:'⚪'}],
+    ['energy',{Low:'',Moderate:'',High:''}],
+    ['play',{}],['eating',{Picky:'🟡','Needs encouragement':'🟡','Special diet':'🟡','Good eater':'🟢'}]
+  ];
+  const labels={temperament:'',social:'🐕 ',energy:'⚡ ',play:'🎾 ',eating:'🍽️ '};
+  const chips=[];
+  if(t.temperament) chips.push(`<span class="vbdg none">${(map[0][1][t.temperament]||'')} ${t.temperament}</span>`);
+  if(t.social) chips.push(`<span class="vbdg none">🐕 ${t.social==='Yes'?'Good w/ dogs':t.social==='No'?'Not w/ dogs':t.social} </span>`);
+  if(t.energy) chips.push(`<span class="vbdg none">⚡ ${t.energy} energy</span>`);
+  if(t.play) chips.push(`<span class="vbdg none">🎾 ${t.play} play</span>`);
+  if(t.eating) chips.push(`<span class="vbdg none">🍽️ ${t.eating}</span>`);
+  if(flagCount) chips.unshift(`<span class="vbdg exp">⚠️ ${flagCount} flagged note${flagCount!==1?'s':''}</span>`);
+  if(!chips.length && !(t.handling&&full)) return full?'<div style="font-size:12px;color:var(--ink-faint)">No behavior info logged yet.</div>':'';
+  let html=`<div class="vacc-row" style="margin-top:5px">${chips.join('')}</div>`;
+  if(full && t.handling) html+=`<div style="font-size:12px;color:var(--ink-light);margin-top:7px;line-height:1.4">📌 ${esc(t.handling)}</div>`;
+  return html;
+}
+function closeDogHistory(){ document.getElementById('doghist-mo').classList.remove('on'); dogHistId=null; }
 document.getElementById('edit-mo').addEventListener('click',function(e){ if(e.target===this) closeEditMo(); });
 document.getElementById('doghist-mo').addEventListener('click',function(e){ if(e.target===this) closeDogHistory(); });
 document.getElementById('cio-mo').addEventListener('click',function(e){ if(e.target===this) closeCio(); });
@@ -1641,6 +1772,28 @@ function selectReqDog(id){
   reqSelDog=id; const d=dogs.find(x=>x.id===id), lbl=document.getElementById('req-dd-lbl');
   lbl.textContent=d?d.dog_name:'Select dog…'; lbl.style.color=d?'var(--ink)':'var(--ink-faint)';
   renderReqDD(); closeReqDD();
+  const rc=document.getElementById('req-recall');
+  if(d){ rc.innerHTML=recallCard(id); rc.style.display=''; } else { rc.style.display='none'; }
+}
+/* "Things to know" recall card — surfaces traits + flagged + recent notes */
+function recallCard(dogId){
+  const d=dogs.find(x=>x.id===dogId); if(!d) return '';
+  const notes=visitNotes.filter(n=>n.dog_id===dogId).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const flagged=notes.filter(n=>n.flagged);
+  const recent=notes.slice(0,3);
+  const t=d.traits||{};
+  const hasTraits=t.temperament||t.social||t.energy||t.play||t.eating||t.handling;
+  if(!hasTraits && !notes.length) return `<div style="background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-md);padding:11px 13px;font-size:12px;color:var(--ink-faint)">🆕 First-time guest — no history on file yet.</div>`;
+  const fd=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  let html=`<div style="background:var(--coral-pale);border:1px solid #F0C9BE;border-radius:var(--radius-md);padding:12px 14px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--coral);margin-bottom:8px">💡 Things to know about ${esc(d.dog_name)}</div>`;
+  if(hasTraits) html+=traitChips(d,true);
+  const show=[...flagged, ...recent.filter(n=>!n.flagged)].slice(0,4);
+  if(show.length){
+    html+='<div style="margin-top:9px;display:flex;flex-direction:column;gap:5px">'+show.map(n=>`<div style="font-size:12px;color:var(--ink);line-height:1.4">${n.flagged?'⚠️ ':'• '}<strong>${esc(n.category)}:</strong> ${esc(n.note)} <span style="color:var(--ink-faint)">(${fd(n.created_at)})</span></div>`).join('')+'</div>';
+  }
+  html+=`<div style="margin-top:9px"><a onclick="openDogHistory('${dogId}')" style="cursor:pointer;font-size:12px;font-weight:600;color:var(--brown)">View full history →</a></div></div>`;
+  return html;
 }
 document.addEventListener('click', e=>{ if(!e.target.closest('#req-dd-btn')&&!e.target.closest('#req-dd-menu')) closeReqDD(); if(!e.target.closest('.breed-wrap')){ ['breed-dd','e-breed-dd'].forEach(id=>{ const bd=document.getElementById(id); if(bd) bd.style.display='none'; }); } });
 async function addRequest(){
@@ -1651,7 +1804,7 @@ async function addRequest(){
   const dog=dogs.find(d=>d.id===reqSelDog);
   const rec={ id:Date.now().toString(), dog_id:reqSelDog, dog_name:dog?dog.dog_name:'', owner_name:dog?dog.owner_name:'', service:document.getElementById('req-svc').value, checkin:ci+'T'+cit, checkout:co+'T'+cot, notes:document.getElementById('req-notes').value.trim(), status:'pending', created_at:new Date().toISOString() };
   setSyncState('busy');
-  try{ await dbAddReq(rec); requests.unshift(rec); setSyncState('ok'); document.getElementById('req-notes').value=''; renderRequests(); updateBadges(); toast('Request added!'); }
+  try{ await dbAddReq(rec); requests.unshift(rec); setSyncState('ok'); document.getElementById('req-notes').value=''; reqSelDog=null; document.getElementById('req-dd-lbl').textContent='Select dog…'; document.getElementById('req-dd-lbl').style.color='var(--ink-faint)'; document.getElementById('req-recall').style.display='none'; renderRequests(); updateBadges(); refreshActive(); toast('Request added!'); }
   catch(e){ setSyncState('err'); toast('Error: '+e.message, true); }
 }
 function renderRequests(){
@@ -1731,6 +1884,7 @@ function openCheckIn(id){
   document.getElementById('cio-date').value=dStr(new Date(r.checkin));
   document.getElementById('cio-time').value=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   document.getElementById('cio-hint').textContent='Record the actual arrival date and time. Check-out and final billing happen when the dog leaves.';
+  const rc=document.getElementById('cio-recall'); if(r.dog_id){ rc.innerHTML=recallCard(r.dog_id); rc.style.display=''; } else rc.style.display='none';
   document.getElementById('cio-preview').style.display='none';
   document.getElementById('cio-save-lbl').textContent='Confirm Check-In';
   document.getElementById('cio-mo').classList.add('on');
@@ -1738,6 +1892,7 @@ function openCheckIn(id){
 function openCheckOut(id){
   const r=requests.find(x=>x.id===id); if(!r) return;
   cioReqId=id; cioMode='out';
+  const cr=document.getElementById('cio-recall'); if(cr) cr.style.display='none';
   const now=new Date();
   document.getElementById('cio-title').textContent='Check Out — '+r.dog_name;
   const inSrc=new Date(r.actual_checkin||r.checkin);
